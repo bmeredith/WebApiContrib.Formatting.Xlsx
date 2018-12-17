@@ -1,5 +1,4 @@
-﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
-using OfficeOpenXml;
+﻿using OfficeOpenXml;
 using OfficeOpenXml.Style;
 using System;
 using System.Collections.Generic;
@@ -10,91 +9,91 @@ using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Security.Authentication.ExtendedProtection;
 using System.Threading.Tasks;
+using FluentAssertions;
 using WebApiContrib.Formatting.Xlsx.Tests.TestData;
+using Xunit;
 
 namespace WebApiContrib.Formatting.Xlsx.Tests
 {
-    [TestClass]
     public class XlsxMediaTypeFormatterTests
     {
-        const string XlsMimeType = "application/vnd.ms-excel";
-        const string XlsxMimeType = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
+        private const string XlsMimeType = "application/vnd.ms-excel";
+        private const string XlsxMimeType = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
 
-        [TestMethod]
+        [Fact]
         public void SupportedMediaTypes_SupportsExcelMediaTypes()
         {
             var formatter = new XlsxMediaTypeFormatter();
 
-            Assert.IsTrue(formatter.SupportedMediaTypes.Any(s => s.MediaType == XlsMimeType),
-                          "XLS media type not supported.");
-
-            Assert.IsTrue(formatter.SupportedMediaTypes.Any(s => s.MediaType == XlsxMimeType),
-                          "XLSX media type not supported.");
+            formatter.SupportedMediaTypes.Any(s => s.MediaType == XlsMimeType).Should()
+                .BeTrue("XLS media type not supported.");
+            formatter.SupportedMediaTypes.Any(s => s.MediaType == XlsxMimeType).Should()
+                .BeTrue("XLS media type not supported.");
         }
 
-        [TestMethod]
+        [Fact]
         public void CanWriteType_AnyType_ReturnsTrue()
         {
             var formatter = new XlsxMediaTypeFormatter();
 
             // Simple types
-            Assert.IsTrue(formatter.CanWriteType(typeof(bool)));
-            Assert.IsTrue(formatter.CanWriteType(typeof(byte)));
-            Assert.IsTrue(formatter.CanWriteType(typeof(sbyte)));
-            Assert.IsTrue(formatter.CanWriteType(typeof(char)));
-            Assert.IsTrue(formatter.CanWriteType(typeof(DateTime)));
-            Assert.IsTrue(formatter.CanWriteType(typeof(DateTimeOffset)));
-            Assert.IsTrue(formatter.CanWriteType(typeof(decimal)));
-            Assert.IsTrue(formatter.CanWriteType(typeof(double)));
-            Assert.IsTrue(formatter.CanWriteType(typeof(float)));
-            Assert.IsTrue(formatter.CanWriteType(typeof(Guid)));
-            Assert.IsTrue(formatter.CanWriteType(typeof(int)));
-            Assert.IsTrue(formatter.CanWriteType(typeof(uint)));
-            Assert.IsTrue(formatter.CanWriteType(typeof(long)));
-            Assert.IsTrue(formatter.CanWriteType(typeof(ulong)));
-            Assert.IsTrue(formatter.CanWriteType(typeof(short)));
-            Assert.IsTrue(formatter.CanWriteType(typeof(TimeSpan)));
-            Assert.IsTrue(formatter.CanWriteType(typeof(ushort)));
-            Assert.IsTrue(formatter.CanWriteType(typeof(string)));
-            Assert.IsTrue(formatter.CanWriteType(typeof(TestEnum)));
+            formatter.CanWriteType(typeof(bool)).Should().BeTrue();
+            formatter.CanWriteType(typeof(byte)).Should().BeTrue();
+            formatter.CanWriteType(typeof(sbyte)).Should().BeTrue();
+            formatter.CanWriteType(typeof(char)).Should().BeTrue();
+            formatter.CanWriteType(typeof(DateTime)).Should().BeTrue();
+            formatter.CanWriteType(typeof(DateTimeOffset)).Should().BeTrue();
+            formatter.CanWriteType(typeof(decimal)).Should().BeTrue();
+            formatter.CanWriteType(typeof(double)).Should().BeTrue();
+            formatter.CanWriteType(typeof(float)).Should().BeTrue();
+            formatter.CanWriteType(typeof(Guid)).Should().BeTrue();
+            formatter.CanWriteType(typeof(int)).Should().BeTrue();
+            formatter.CanWriteType(typeof(uint)).Should().BeTrue();
+            formatter.CanWriteType(typeof(long)).Should().BeTrue();
+            formatter.CanWriteType(typeof(ulong)).Should().BeTrue();
+            formatter.CanWriteType(typeof(short)).Should().BeTrue();
+            formatter.CanWriteType(typeof(TimeSpan)).Should().BeTrue();
+            formatter.CanWriteType(typeof(ushort)).Should().BeTrue();
+            formatter.CanWriteType(typeof(string)).Should().BeTrue();
+            formatter.CanWriteType(typeof(TestEnum)).Should().BeTrue();
 
             // Complex types
             var anonymous = new { prop = "val" };
-            Assert.IsTrue(formatter.CanWriteType(anonymous.GetType()));
-            Assert.IsTrue(formatter.CanWriteType(typeof(Array)));
-            Assert.IsTrue(formatter.CanWriteType(typeof(IEnumerable<>)));
-            Assert.IsTrue(formatter.CanWriteType(typeof(object)));
-            Assert.IsTrue(formatter.CanWriteType(typeof(SimpleTestItem)));
+            formatter.CanWriteType(anonymous.GetType()).Should().BeTrue();
+            formatter.CanWriteType(typeof(Array)).Should().BeTrue();
+            formatter.CanWriteType(typeof(IEnumerable<>)).Should().BeTrue();
+            formatter.CanWriteType(typeof(object)).Should().BeTrue();
+            formatter.CanWriteType(typeof(SimpleTestItem)).Should().BeTrue();
         }
 
-        [TestMethod]
+        [Fact]
         public void CanReadType_TypeObject_ReturnsFalse()
         {
             var formatter = new XlsxMediaTypeFormatter();
 
-            Assert.IsFalse (formatter.CanReadType(typeof(object)));
+            formatter.CanReadType(typeof(object)).Should().BeFalse();
         }
 
-        [TestMethod]
+        [Fact]
         public void WriteToStreamAsync_WithListOfSimpleTestItem_WritesExcelDocumentToStream()
         {
             var data = new[] { new SimpleTestItem { Value1 = "2,1", Value2 = "2,2" },
                                new SimpleTestItem { Value1 = "3,1", Value2 = "3,2" } }.ToList();
 
             var sheet = GetWorksheetFromStream(new XlsxMediaTypeFormatter(), data);
-            
-            Assert.IsNotNull(sheet.Dimension, "Worksheet has no cells.");
-            Assert.AreEqual(3.0, sheet.Dimension.End.Row, "Worksheet should have three rows (including header column).");
-            Assert.AreEqual(2.0, sheet.Dimension.End.Column, "Worksheet should have two columns.");
-            Assert.AreEqual("Value1", sheet.GetValue<string>(1, 1), "Header in A1 is incorrect.");
-            Assert.AreEqual("Value2", sheet.GetValue<string>(1, 2), "Header in B1 is incorrect.");
-            Assert.AreEqual(data[0].Value1, sheet.GetValue<string>(2, 1), "Value in A2 is incorrect.");
-            Assert.AreEqual(data[0].Value2, sheet.GetValue<string>(2, 2), "Value in B2 is incorrect.");
-            Assert.AreEqual(data[1].Value1, sheet.GetValue<string>(3, 1), "Value in A3 is incorrect.");
-            Assert.AreEqual(data[1].Value2, sheet.GetValue<string>(3, 2), "Value in B3 is incorrect.");
+
+            sheet.Dimension.Should().NotBeNull("Worksheet has no cells.");
+            sheet.Dimension.End.Row.Should().Be(3, "Worksheet should have three rows (including header column).");
+            sheet.Dimension.End.Column.Should().Be(2, "Worksheet should have two columns.");
+            sheet.GetValue<string>(1, 1).Should().Be("Value1", "Header in A1 is incorrect.");
+            sheet.GetValue<string>(1, 2).Should().Be("Value2", "Header in B1 is incorrect.");
+            sheet.GetValue<string>(2, 1).Should().Be(data[0].Value1, "Value in A2 is incorrect.");
+            sheet.GetValue<string>(2, 2).Should().Be(data[0].Value2, "Value in B2 is incorrect.");
+            sheet.GetValue<string>(3, 1).Should().Be(data[1].Value1, "Value in A3 is incorrect.");
+            sheet.GetValue<string>(3, 2).Should().Be(data[1].Value2, "Value in B3 is incorrect.");
         }
 
-        [TestMethod]
+        [Fact]
         public void WriteToStreamAsync_WithArrayOfSimpleTestItem_WritesExcelDocumentToStream()
         {
             var data = new[] { new SimpleTestItem { Value1 = "2,1", Value2 = "2,2" },
@@ -102,23 +101,23 @@ namespace WebApiContrib.Formatting.Xlsx.Tests
 
             var sheet = GetWorksheetFromStream(new XlsxMediaTypeFormatter(), data);
 
-            Assert.IsNotNull(sheet.Dimension, "Worksheet has no cells.");
-            Assert.AreEqual(3.0, sheet.Dimension.End.Row, "Worksheet should have three rows (including header column).");
-            Assert.AreEqual(2.0, sheet.Dimension.End.Column, "Worksheet should have two columns.");
-            Assert.AreEqual("Value1", sheet.GetValue<string>(1, 1), "Header in A1 is incorrect.");
-            Assert.AreEqual("Value2", sheet.GetValue<string>(1, 2), "Header in B1 is incorrect.");
-            Assert.AreEqual(data[0].Value1, sheet.GetValue<string>(2, 1), "Value in A2 is incorrect.");
-            Assert.AreEqual(data[0].Value2, sheet.GetValue<string>(2, 2), "Value in B2 is incorrect.");
-            Assert.AreEqual(data[1].Value1, sheet.GetValue<string>(3, 1), "Value in A3 is incorrect.");
-            Assert.AreEqual(data[1].Value2, sheet.GetValue<string>(3, 2), "Value in B3 is incorrect.");
+            sheet.Dimension.Should().NotBeNull("Worksheet has no cells.");
+            sheet.Dimension.End.Row.Should().Be(3, "Worksheet should have three rows (including header column).");
+            sheet.Dimension.End.Column.Should().Be(2, "Worksheet should have two columns.");
+            sheet.GetValue<string>(1, 1).Should().Be("Value1", "Header in A1 is incorrect.");
+            sheet.GetValue<string>(1, 2).Should().Be("Value2", "Header in B1 is incorrect.");
+            sheet.GetValue<string>(2, 1).Should().Be(data[0].Value1, "Value in A2 is incorrect.");
+            sheet.GetValue<string>(2, 2).Should().Be(data[0].Value2, "Value in B2 is incorrect.");
+            sheet.GetValue<string>(3, 1).Should().Be(data[1].Value1, "Value in A3 is incorrect.");
+            sheet.GetValue<string>(3, 2).Should().Be(data[1].Value2, "Value in B3 is incorrect.");
         }
 
-        [TestMethod]
+        [Fact]
         public void WriteToStreamAsync_WithArrayOfFormatStringTestItem_ValuesFormattedAppropriately()
         {
             var tomorrow = DateTime.Today.AddDays(1);
             var formattedDate = tomorrow.ToString("D");
-            
+
             var data = new[] { new FormatStringTestItem { Value1 = tomorrow,
                                                           Value2 = tomorrow,
                                                           Value3 = tomorrow,
@@ -131,24 +130,24 @@ namespace WebApiContrib.Formatting.Xlsx.Tests
 
             var sheet = GetWorksheetFromStream(new XlsxMediaTypeFormatter(), data);
 
-            Assert.IsNotNull(sheet.Dimension, "Worksheet has no cells.");
-            Assert.AreEqual(3.0, sheet.Dimension.End.Row, "Worksheet should have three rows (including header column).");
-            Assert.AreEqual(4.0, sheet.Dimension.End.Column, "Worksheet should have four columns.");
-            Assert.AreEqual("Value1", sheet.GetValue<string>(1, 1), "Header in A1 is incorrect.");
-            Assert.AreEqual("Value2", sheet.GetValue<string>(1, 2), "Header in B1 is incorrect.");
-            Assert.AreEqual("Value3", sheet.GetValue<string>(1, 3), "Header in C1 is incorrect.");
-            Assert.AreEqual("Value4", sheet.GetValue<string>(1, 4), "Header in D1 is incorrect.");
-            Assert.AreNotEqual(formattedDate, sheet.GetValue<string>(2, 1), "Value in A2 is incorrect.");
-            Assert.AreEqual(formattedDate, sheet.GetValue<string>(2, 2), "Value in B2 is incorrect.");
-            Assert.AreNotEqual(formattedDate, sheet.GetValue<string>(2, 3), "Value in C2 is incorrect.");
-            Assert.AreNotEqual(formattedDate, sheet.GetValue<string>(2, 4), "Value in D2 is incorrect.");
-            Assert.AreNotEqual(formattedDate, sheet.GetValue<string>(3, 1), "Value in A3 is incorrect.");
-            Assert.AreEqual(string.Empty, sheet.GetValue<string>(3, 2), "Value in B3 is incorrect.");
-            Assert.AreEqual(string.Empty, sheet.GetValue<string>(3, 3), "Value in C3 is incorrect.");
-            Assert.AreNotEqual(formattedDate, sheet.GetValue<string>(3, 4), "Value in D3 is incorrect.");
+            sheet.Dimension.Should().NotBeNull("Worksheet has no cells.");
+            sheet.Dimension.End.Row.Should().Be(3, "Worksheet should have three rows (including header column).");
+            sheet.Dimension.End.Column.Should().Be(4, "Worksheet should have four columns.");
+            sheet.GetValue<string>(1, 1).Should().Be("Value1", "Header in A1 is incorrect.");
+            sheet.GetValue<string>(1, 2).Should().Be("Value2", "Header in B1 is incorrect.");
+            sheet.GetValue<string>(1, 3).Should().Be("Value3", "Header in C1 is incorrect.");
+            sheet.GetValue<string>(1, 4).Should().Be("Value4", "Header in D1 is incorrect.");
+            sheet.GetValue<string>(2, 1).Should().NotBe(formattedDate, "Value in A2 is incorrect.");
+            sheet.GetValue<string>(2, 2).Should().Be(formattedDate, "Value in B2 is incorrect.");
+            sheet.GetValue<string>(2, 3).Should().NotBe(formattedDate, "Value in C2 is incorrect.");
+            sheet.GetValue<string>(2, 4).Should().NotBe(formattedDate, "Value in D2 is incorrect.");
+            sheet.GetValue<string>(3, 1).Should().NotBe(formattedDate, "Value in A3 is incorrect.");
+            sheet.GetValue<string>(3, 2).Should().Be(string.Empty, "Value in B3 is incorrect.");
+            sheet.GetValue<string>(3, 3).Should().Be(string.Empty, "Value in C3 is incorrect.");
+            sheet.GetValue<string>(3, 4).Should().NotBe(formattedDate, "Value in D3 is incorrect.");
         }
 
-        [TestMethod]
+        [Fact]
         public void WriteToStreamAsync_WithArrayOfBooleanTestItem_TrueOrFalseValueUsedAsAppropriate()
         {
             var data = new[] { new BooleanTestItem { Value1 = true,
@@ -160,7 +159,7 @@ namespace WebApiContrib.Formatting.Xlsx.Tests
                                                      Value2 = false,
                                                      Value3 = false,
                                                      Value4 = false },
-            
+
                                new BooleanTestItem { Value1 = true,
                                                      Value2 = true,
                                                      Value3 = null,
@@ -168,72 +167,75 @@ namespace WebApiContrib.Formatting.Xlsx.Tests
 
             var sheet = GetWorksheetFromStream(new XlsxMediaTypeFormatter(), data);
 
-            Assert.IsNotNull(sheet.Dimension, "Worksheet has no cells.");
-            Assert.AreEqual(4.0, sheet.Dimension.End.Row, "Worksheet should have four rows (including header column).");
-            Assert.AreEqual(4.0, sheet.Dimension.End.Column, "Worksheet should have four columns.");
-            Assert.AreEqual("Value1", sheet.GetValue<string>(1, 1), "Header in A1 is incorrect.");
-            Assert.AreEqual("Value2", sheet.GetValue<string>(1, 2), "Header in B1 is incorrect.");
-            Assert.AreEqual("Value3", sheet.GetValue<string>(1, 3), "Header in C1 is incorrect.");
-            Assert.AreEqual("Value4", sheet.GetValue<string>(1, 4), "Header in D1 is incorrect.");
-            Assert.AreEqual("True", sheet.GetValue<string>(2, 1), "Value in A2 is incorrect.");
-            Assert.AreEqual("Yes", sheet.GetValue<string>(2, 2), "Value in B2 is incorrect.");
-            Assert.AreEqual("True", sheet.GetValue<string>(2, 3), "Value in C2 is incorrect.");
-            Assert.AreEqual("Yes", sheet.GetValue<string>(2, 4), "Value in D2 is incorrect.");
-            Assert.AreEqual("False", sheet.GetValue<string>(3, 1), "Value in A3 is incorrect.");
-            Assert.AreEqual("No", sheet.GetValue<string>(3, 2), "Value in B3 is incorrect.");
-            Assert.AreEqual("False", sheet.GetValue<string>(3, 3), "Value in C3 is incorrect.");
-            Assert.AreEqual("No", sheet.GetValue<string>(3, 4), "Value in D3 is incorrect.");
-            Assert.AreEqual("True", sheet.GetValue<string>(4, 1), "Value in A4 is incorrect.");
-            Assert.AreEqual("Yes", sheet.GetValue<string>(4, 2), "Value in B4 is incorrect.");
-            Assert.AreEqual(string.Empty, sheet.GetValue<string>(4, 3), "Value in C4 is incorrect.");
-            Assert.AreEqual(string.Empty, sheet.GetValue<string>(4, 4), "Value in D4 is incorrect.");
+            sheet.Dimension.Should().NotBeNull("Worksheet has no cells.");
+            sheet.Dimension.End.Row.Should().Be(4, "Worksheet should have four rows (including header column).");
+            sheet.Dimension.End.Column.Should().Be(4, "Worksheet should have four columns.");
+            sheet.GetValue<string>(1, 1).Should().Be("Value1", "Header in A1 is incorrect.");
+            sheet.GetValue<string>(1, 2).Should().Be("Value2", "Header in B1 is incorrect.");
+            sheet.GetValue<string>(1, 3).Should().Be("Value3", "Header in C1 is incorrect.");
+            sheet.GetValue<string>(1, 4).Should().Be("Value4", "Header in D1 is incorrect.");
+            sheet.GetValue<string>(2, 1).Should().Be("True", "Value in A2 is incorrect.");
+            sheet.GetValue<string>(2, 2).Should().Be("Yes", "Value in B2 is incorrect.");
+            sheet.GetValue<string>(2, 3).Should().Be("True", "Value in C2 is incorrect.");
+            sheet.GetValue<string>(2, 4).Should().Be("Yes", "Value in D2 is incorrect.");
+            sheet.GetValue<string>(3, 1).Should().Be("False", "Value in A3 is incorrect.");
+            sheet.GetValue<string>(3, 2).Should().Be("No", "Value in B3 is incorrect.");
+            sheet.GetValue<string>(3, 3).Should().Be("False", "Value in C3 is incorrect.");
+            sheet.GetValue<string>(3, 4).Should().Be("No", "Value in D3 is incorrect.");
+            sheet.GetValue<string>(4, 1).Should().Be("True", "Value in A4 is incorrect.");
+            sheet.GetValue<string>(4, 2).Should().Be("Yes", "Value in B4 is incorrect.");
+            sheet.GetValue<string>(4, 3).Should().Be(string.Empty, "Value in C4 is incorrect.");
+            sheet.GetValue<string>(4, 4).Should().Be(string.Empty, "Value in D4 is incorrect.");
         }
 
-        [TestMethod]
+        [Fact]
         public void WriteToStreamAsync_WithSimpleTestItem_WritesExcelDocumentToStream()
         {
             var data = new SimpleTestItem { Value1 = "2,1", Value2 = "2,2" };
 
             var sheet = GetWorksheetFromStream(new XlsxMediaTypeFormatter(), data);
 
-            Assert.IsNotNull(sheet.Dimension, "Worksheet has no cells.");
-            Assert.AreEqual(2.0, sheet.Dimension.End.Row, "Worksheet should have two rows (including header column).");
-            Assert.AreEqual(2.0, sheet.Dimension.End.Column, "Worksheet should have two columns.");
-            Assert.AreEqual("Value1", sheet.GetValue<string>(1, 1), "Header in A1 is incorrect.");
-            Assert.AreEqual("Value2", sheet.GetValue<string>(1, 2), "Header in B1 is incorrect.");
-            Assert.AreEqual(data.Value1, sheet.GetValue<string>(2, 1), "Value in A2 is incorrect.");
-            Assert.AreEqual(data.Value2, sheet.GetValue<string>(2, 2), "Value in B2 is incorrect.");
+            sheet.Dimension.Should().NotBeNull("Worksheet has no cells.");
+            sheet.Dimension.End.Row.Should().Be(2, "Worksheet should have two rows (including header column).");
+            sheet.Dimension.End.Column.Should().Be(2, "Worksheet should have two columns.");
+            sheet.GetValue<string>(1, 1).Should().Be("Value1", "Header in A1 is incorrect.");
+            sheet.GetValue<string>(1, 2).Should().Be("Value2", "Header in B1 is incorrect.");
+            sheet.GetValue<string>(2, 1).Should().Be(data.Value1, "Value in A2 is incorrect.");
+            sheet.GetValue<string>(2, 2).Should().Be(data.Value2, "Value in B2 is incorrect.");
         }
 
-        [TestMethod]
+        [Fact]
         public void WriteToStreamAsync_WithComplexTestItem_WritesExcelDocumentToStream()
         {
-            var data = new ComplexTestItem { Value1 = "Item 1",
-                                             Value2 = DateTime.Today,
-                                             Value3 = true,
-                                             Value4 = 100.1,
-                                             Value5 = TestEnum.First,
-                                             Value6 = "Ignored" };
+            var data = new ComplexTestItem
+            {
+                Value1 = "Item 1",
+                Value2 = DateTime.Today,
+                Value3 = true,
+                Value4 = 100.1,
+                Value5 = TestEnum.First,
+                Value6 = "Ignored"
+            };
 
             var sheet = GetWorksheetFromStream(new XlsxMediaTypeFormatter(), data);
 
-            Assert.IsNotNull(sheet.Dimension, "Worksheet has no cells.");
-            Assert.AreEqual(2.0, sheet.Dimension.End.Row, "Worksheet should have two rows (including header column).");
-            Assert.AreEqual(5.0, sheet.Dimension.End.Column, "Worksheet should have five columns.");
-            Assert.AreEqual("Header 4", sheet.GetValue<string>(1, 1), "Header in A1 is incorrect.");
-            Assert.AreEqual("Value1", sheet.GetValue<string>(1, 2), "Header in B1 is incorrect.");
-            Assert.AreEqual("Header 5", sheet.GetValue<string>(1, 3), "Header in C1 is incorrect.");
-            Assert.AreEqual("Header 3", sheet.GetValue<string>(1, 4), "Header in D1 is incorrect.");
-            Assert.AreEqual("Value2", sheet.GetValue<string>(1, 5), "Header in E1 is incorrect.");
-            Assert.AreEqual(data.Value4, sheet.GetValue<double>(2, 1), "Data in A2 is incorrect.");
-            Assert.AreEqual("???.???", sheet.Cells[2, 1].Style.Numberformat.Format, "NumberFormat of A2 is incorrect.");
-            Assert.AreEqual(data.Value1, sheet.GetValue<string>(2, 2), "Data in B2 is incorrect.");
-            Assert.AreEqual(data.Value5.ToString(), sheet.GetValue<string>(2, 3), "Data in C2 is incorrect.");
-            Assert.AreEqual(data.Value3.ToString(), sheet.GetValue<string>(2, 4), "Data in D2 is incorrect.");
-            Assert.AreEqual(data.Value2, sheet.GetValue<DateTime>(2, 5), "Data in E2 is incorrect.");
+            sheet.Dimension.Should().NotBeNull("Worksheet has no cells.");
+            sheet.Dimension.End.Row.Should().Be(2, "Worksheet should have two rows (including header column).");
+            sheet.Dimension.End.Column.Should().Be(5, "Worksheet should have five columns.");
+            sheet.GetValue<string>(1, 1).Should().Be("Header 4", "Header in A1 is incorrect.");
+            sheet.GetValue<string>(1, 2).Should().Be("Value1", "Header in B1 is incorrect.");
+            sheet.GetValue<string>(1, 3).Should().Be("Header 5", "Header in C1 is incorrect.");
+            sheet.GetValue<string>(1, 4).Should().Be("Header 3", "Header in D1 is incorrect.");
+            sheet.GetValue<string>(1, 5).Should().Be("Value2", "Header in E1 is incorrect.");
+            sheet.GetValue<double>(2, 1).Should().Be(data.Value4, "Value in A2 is incorrect.");
+            sheet.Cells[2, 1].Style.Numberformat.Format.Should().Be("???.???", "NumberFormat of A2 is incorrect.");
+            sheet.GetValue<string>(2, 2).Should().Be(data.Value1, "Value in B2 is incorrect.");
+            sheet.GetValue<string>(2, 3).Should().Be(data.Value5.ToString(), "Value in C2 is incorrect.");
+            sheet.GetValue<string>(2, 4).Should().Be(data.Value3.ToString(), "Value in D2 is incorrect.");
+            sheet.GetValue<DateTime>(2, 5).Should().Be(data.Value2, "Value in E2 is incorrect.");
         }
 
-        [TestMethod]
+        [Fact]
         public void WriteToStreamAsync_WithListOfComplexTestItem_WritesExcelDocumentToStream()
         {
             var data = new[] { new ComplexTestItem { Value1 = "Item 1",
@@ -252,47 +254,47 @@ namespace WebApiContrib.Formatting.Xlsx.Tests
 
             var sheet = GetWorksheetFromStream(new XlsxMediaTypeFormatter(), data);
 
-            Assert.IsNotNull(sheet.Dimension, "Worksheet has no cells.");
-            Assert.AreEqual(3.0, sheet.Dimension.End.Row, "Worksheet should have three rows (including header column).");
-            Assert.AreEqual(5.0, sheet.Dimension.End.Column, "Worksheet should have five columns.");
-            Assert.AreEqual("Header 4", sheet.GetValue<string>(1, 1), "Header in A1 is incorrect.");
-            Assert.AreEqual("Value1", sheet.GetValue<string>(1, 2), "Header in B1 is incorrect.");
-            Assert.AreEqual("Header 5", sheet.GetValue<string>(1, 3), "Header in C1 is incorrect.");
-            Assert.AreEqual("Header 3", sheet.GetValue<string>(1, 4), "Header in D1 is incorrect.");
-            Assert.AreEqual("Value2", sheet.GetValue<string>(1, 5), "Header in E1 is incorrect.");
-            Assert.AreEqual(data[0].Value4, sheet.GetValue<double>(2, 1), "Data in A2 is incorrect.");
-            Assert.AreEqual("???.???", sheet.Cells[2, 1].Style.Numberformat.Format, "NumberFormat of A2 is incorrect.");
-            Assert.AreEqual(data[0].Value1, sheet.GetValue<string>(2, 2), "Data in B2 is incorrect.");
-            Assert.AreEqual(data[0].Value5.ToString(), sheet.GetValue<string>(2, 3), "Data in C2 is incorrect.");
-            Assert.AreEqual(data[0].Value3.ToString(), sheet.GetValue<string>(2, 4), "Data in D2 is incorrect.");
-            Assert.AreEqual(data[0].Value2, sheet.GetValue<DateTime>(2, 5), "Data in E2 is incorrect.");
-            Assert.AreEqual(data[1].Value4, sheet.GetValue<double>(3, 1), "Data in A3 is incorrect.");
-            Assert.AreEqual("???.???", sheet.Cells[3, 1].Style.Numberformat.Format, "NumberFormat of A3 is incorrect.");
-            Assert.AreEqual(data[1].Value1, sheet.GetValue<string>(3, 2), "Data in B3 is incorrect.");
-            Assert.AreEqual(data[1].Value5.ToString(), sheet.GetValue<string>(3, 3), "Data in C3 is incorrect.");
-            Assert.AreEqual(data[1].Value3.ToString(), sheet.GetValue<string>(3, 4), "Data in D3 is incorrect.");
-            Assert.AreEqual(data[1].Value2, sheet.GetValue<DateTime>(3, 5), "Data in E3 is incorrect.");
+            sheet.Dimension.Should().NotBeNull("Worksheet has no cells.");
+            sheet.Dimension.End.Row.Should().Be(3, "Worksheet should have three rows (including header column).");
+            sheet.Dimension.End.Column.Should().Be(5, "Worksheet should have five columns.");
+            sheet.GetValue<string>(1, 1).Should().Be("Header 4", "Header in A1 is incorrect.");
+            sheet.GetValue<string>(1, 2).Should().Be("Value1", "Header in B1 is incorrect.");
+            sheet.GetValue<string>(1, 3).Should().Be("Header 5", "Header in C1 is incorrect.");
+            sheet.GetValue<string>(1, 4).Should().Be("Header 3", "Header in D1 is incorrect.");
+            sheet.GetValue<string>(1, 5).Should().Be("Value2", "Header in E1 is incorrect.");
+            sheet.GetValue<double>(2, 1).Should().Be(data[0].Value4, "Value in A2 is incorrect.");
+            sheet.Cells[2, 1].Style.Numberformat.Format.Should().Be("???.???", "NumberFormat of A2 is incorrect.");
+            sheet.GetValue<string>(2, 2).Should().Be(data[0].Value1, "Value in B2 is incorrect.");
+            sheet.GetValue<string>(2, 3).Should().Be(data[0].Value5.ToString(), "Value in C2 is incorrect.");
+            sheet.GetValue<string>(2, 4).Should().Be(data[0].Value3.ToString(), "Value in D2 is incorrect.");
+            sheet.GetValue<DateTime>(2, 5).Should().Be(data[0].Value2, "Value in E2 is incorrect.");
+            sheet.GetValue<double>(3, 1).Should().Be(data[1].Value4, "Value in A3 is incorrect.");
+            sheet.Cells[3, 1].Style.Numberformat.Format.Should().Be("???.???", "NumberFormat of A3 is incorrect.");
+            sheet.GetValue<string>(3, 2).Should().Be(data[1].Value1, "Value in B3 is incorrect.");
+            sheet.GetValue<string>(3, 3).Should().Be(data[1].Value5.ToString(), "Value in C3 is incorrect.");
+            sheet.GetValue<string>(3, 4).Should().Be(data[1].Value3.ToString(), "Value in D3 is incorrect.");
+            sheet.GetValue<DateTime>(3, 5).Should().Be(data[1].Value2, "Value in E3 is incorrect.");
         }
 
-        [TestMethod]
+        [Fact]
         public void WriteToStreamAsync_WithAnonymousObject_WritesExcelDocumentToStream()
         {
             var data = new { prop1 = "val1", prop2 = 1.0, prop3 = DateTime.Today };
 
             var sheet = GetWorksheetFromStream(new XlsxMediaTypeFormatter(), data);
 
-            Assert.IsNotNull(sheet.Dimension, "Worksheet has no cells.");
-            Assert.AreEqual(2.0, sheet.Dimension.End.Row, "Worksheet should have two rows.");
-            Assert.AreEqual(3.0, sheet.Dimension.End.Column, "Worksheet should have three columns.");
-            Assert.AreEqual("prop1", sheet.GetValue<string>(1, 1), "Header in A1 is incorrect.");
-            Assert.AreEqual("prop2", sheet.GetValue<string>(1, 2), "Header in B1 is incorrect.");
-            Assert.AreEqual("prop3", sheet.GetValue<string>(1, 3), "Header in C1 is incorrect.");
-            Assert.AreEqual(data.prop1, sheet.GetValue<string>(2, 1), "Value in A2 is incorrect.");
-            Assert.AreEqual(data.prop2, sheet.GetValue<double>(2, 2), "Value in B2 is incorrect.");
-            Assert.AreEqual(data.prop3, sheet.GetValue<DateTime>(2, 3), "Value in C2 is incorrect.");
+            sheet.Dimension.Should().NotBeNull("Worksheet has no cells.");
+            sheet.Dimension.End.Row.Should().Be(2, "Worksheet should have two rows.");
+            sheet.Dimension.End.Column.Should().Be(3, "Worksheet should have three columns.");
+            sheet.GetValue<string>(1, 1).Should().Be("prop1", "Header in A1 is incorrect.");
+            sheet.GetValue<string>(1, 2).Should().Be("prop2", "Header in B1 is incorrect.");
+            sheet.GetValue<string>(1, 3).Should().Be("prop3", "Header in C1 is incorrect.");
+            sheet.GetValue<string>(2, 1).Should().Be(data.prop1, "Value in A2 is incorrect.");
+            sheet.GetValue<double>(2, 2).Should().Be(data.prop2, "Value in B2 is incorrect.");
+            sheet.GetValue<DateTime>(2, 3).Should().Be(data.prop3, "Value in C2 is incorrect.");
         }
 
-        [TestMethod]
+        [Fact]
         public void WriteToStreamAsync_WithArrayOfAnonymousObject_WritesExcelDocumentToStream()
         {
             var data = new[] {
@@ -302,102 +304,102 @@ namespace WebApiContrib.Formatting.Xlsx.Tests
 
             var sheet = GetWorksheetFromStream(new XlsxMediaTypeFormatter(), data);
 
-            Assert.IsNotNull(sheet.Dimension, "Worksheet has no cells.");
-            Assert.AreEqual(3.0, sheet.Dimension.End.Row, "Worksheet should have three rows.");
-            Assert.AreEqual(3.0, sheet.Dimension.End.Column, "Worksheet should have three columns.");
-            Assert.AreEqual("prop1", sheet.GetValue<string>(1, 1), "Header in A1 is incorrect.");
-            Assert.AreEqual("prop2", sheet.GetValue<string>(1, 2), "Header in B1 is incorrect.");
-            Assert.AreEqual("prop3", sheet.GetValue<string>(1, 3), "Header in C1 is incorrect.");
-            Assert.AreEqual(data[0].prop1, sheet.GetValue<string>(2, 1), "Value in A2 is incorrect.");
-            Assert.AreEqual(data[0].prop2, sheet.GetValue<double>(2, 2), "Value in B2 is incorrect.");
-            Assert.AreEqual(data[0].prop3, sheet.GetValue<DateTime>(2, 3), "Value in C2 is incorrect.");
-            Assert.AreEqual(data[1].prop1, sheet.GetValue<string>(3, 1), "Value in A3 is incorrect.");
-            Assert.AreEqual(data[1].prop2, sheet.GetValue<double>(3, 2), "Value in B3 is incorrect.");
-            Assert.AreEqual(data[1].prop3, sheet.GetValue<DateTime>(3, 3), "Value in C3 is incorrect.");
+            sheet.Dimension.Should().NotBeNull("Worksheet has no cells.");
+            sheet.Dimension.End.Row.Should().Be(3, "Worksheet should have three rows.");
+            sheet.Dimension.End.Column.Should().Be(3, "Worksheet should have three columns.");
+            sheet.GetValue<string>(1, 1).Should().Be("prop1", "Header in A1 is incorrect.");
+            sheet.GetValue<string>(1, 2).Should().Be("prop2", "Header in B1 is incorrect.");
+            sheet.GetValue<string>(1, 3).Should().Be("prop3", "Header in C1 is incorrect.");
+            sheet.GetValue<string>(2, 1).Should().Be(data[0].prop1, "Value in A2 is incorrect.");
+            sheet.GetValue<double>(2, 2).Should().Be(data[0].prop2, "Value in B2 is incorrect.");
+            sheet.GetValue<DateTime>(2, 3).Should().Be(data[0].prop3, "Value in C2 is incorrect.");
+            sheet.GetValue<string>(3, 1).Should().Be(data[1].prop1, "Value in A3 is incorrect.");
+            sheet.GetValue<double>(3, 2).Should().Be(data[1].prop2, "Value in B3 is incorrect.");
+            sheet.GetValue<DateTime>(3, 3).Should().Be(data[1].prop3, "Value in C3 is incorrect.");
         }
 
-        [TestMethod]
+        [Fact]
         public void WriteToStreamAsync_WithString_WritesExcelDocumentToStream()
         {
             var data = "Test";
 
             var sheet = GetWorksheetFromStream(new XlsxMediaTypeFormatter(), data);
 
-            Assert.IsNotNull(sheet.Dimension, "Worksheet has no cells.");
-            Assert.AreEqual(1.0, sheet.Dimension.End.Row, "Worksheet should have one row.");
-            Assert.AreEqual(1.0, sheet.Dimension.End.Column, "Worksheet should have one column.");
-            Assert.AreEqual(data, sheet.GetValue<string>(1, 1), "Value in A1 is incorrect.");
+            sheet.Dimension.Should().NotBeNull("Worksheet has no cells.");
+            sheet.Dimension.End.Row.Should().Be(1, "Worksheet should have one row.");
+            sheet.Dimension.End.Column.Should().Be(1, "Worksheet should have one column.");
+            sheet.GetValue<string>(1, 1).Should().Be(data, "Value in A1 is incorrect.");
         }
 
-        [TestMethod]
+        [Fact]
         public void WriteToStreamAsync_WithArrayOfString_WritesExcelDocumentToStream()
         {
             var data = new[] { "1,1", "2,1" };
 
             var sheet = GetWorksheetFromStream(new XlsxMediaTypeFormatter(), data);
 
-            Assert.IsNotNull(sheet.Dimension, "Worksheet has no cells.");
-            Assert.AreEqual(2.0, sheet.Dimension.End.Row, "Worksheet should have two rows.");
-            Assert.AreEqual(1.0, sheet.Dimension.End.Column, "Worksheet should have one column.");
-            Assert.AreEqual(data[0], sheet.GetValue<string>(1, 1), "Value in A1 is incorrect.");
-            Assert.AreEqual(data[1], sheet.GetValue<string>(2, 1), "Value in A2 is incorrect.");
+            sheet.Dimension.Should().NotBeNull("Worksheet has no cells.");
+            sheet.Dimension.End.Row.Should().Be(2, "Worksheet should have two rows.");
+            sheet.Dimension.End.Column.Should().Be(1, "Worksheet should have one column.");
+            sheet.GetValue<string>(1, 1).Should().Be(data[0], "Value in A1 is incorrect.");
+            sheet.GetValue<string>(2, 1).Should().Be(data[1], "Value in A2 is incorrect.");
         }
 
-        [TestMethod]
+        [Fact]
         public void WriteToStreamAsync_WithInt32_WritesExcelDocumentToStream()
         {
             var data = 100;
 
             var sheet = GetWorksheetFromStream(new XlsxMediaTypeFormatter(), data);
 
-            Assert.IsNotNull(sheet.Dimension, "Worksheet has no cells.");
-            Assert.AreEqual(1.0, sheet.Dimension.End.Row, "Worksheet should have one row.");
-            Assert.AreEqual(1.0, sheet.Dimension.End.Column, "Worksheet should have one column.");
-            Assert.AreEqual(data, sheet.GetValue<int>(1, 1), "Value in A1 is incorrect.");
+            sheet.Dimension.Should().NotBeNull("Worksheet has no cells.");
+            sheet.Dimension.End.Row.Should().Be(1, "Worksheet should have one row.");
+            sheet.Dimension.End.Column.Should().Be(1, "Worksheet should have one column.");
+            sheet.GetValue<int>(1, 1).Should().Be(data, "Value in A1 is incorrect.");
         }
 
-        [TestMethod]
+        [Fact]
         public void WriteToStreamAsync_WithArrayOfInt32_WritesExcelDocumentToStream()
         {
             var data = new[] { 100, 200 };
 
             var sheet = GetWorksheetFromStream(new XlsxMediaTypeFormatter(), data);
 
-            Assert.IsNotNull(sheet.Dimension, "Worksheet has no cells.");
-            Assert.AreEqual(2.0, sheet.Dimension.End.Row, "Worksheet should have one row.");
-            Assert.AreEqual(1.0, sheet.Dimension.End.Column, "Worksheet should have one column.");
-            Assert.AreEqual(data[0], sheet.GetValue<int>(1, 1), "Value in A1 is incorrect.");
-            Assert.AreEqual(data[1], sheet.GetValue<int>(2, 1), "Value in A2 is incorrect.");
+            sheet.Dimension.Should().NotBeNull("Worksheet has no cells.");
+            sheet.Dimension.End.Row.Should().Be(2, "Worksheet should have two rows.");
+            sheet.Dimension.End.Column.Should().Be(1, "Worksheet should have one column.");
+            sheet.GetValue<int>(1, 1).Should().Be(data[0], "Value in A1 is incorrect.");
+            sheet.GetValue<int>(2, 1).Should().Be(data[1], "Value in A2 is incorrect.");
         }
 
-        [TestMethod]
+        [Fact]
         public void WriteToStreamAsync_WithDateTime_WritesExcelDocumentToStream()
         {
             var data = DateTime.Today;
 
             var sheet = GetWorksheetFromStream(new XlsxMediaTypeFormatter(), data);
 
-            Assert.IsNotNull(sheet.Dimension, "Worksheet has no cells.");
-            Assert.AreEqual(1.0, sheet.Dimension.End.Row, "Worksheet should have one row.");
-            Assert.AreEqual(1.0, sheet.Dimension.End.Column, "Worksheet should have one column.");
-            Assert.AreEqual(data, sheet.GetValue<DateTime>(1, 1), "Value in A1 is incorrect.");
+            sheet.Dimension.Should().NotBeNull("Worksheet has no cells.");
+            sheet.Dimension.End.Row.Should().Be(1, "Worksheet should have one row.");
+            sheet.Dimension.End.Column.Should().Be(1, "Worksheet should have one column.");
+            sheet.GetValue<DateTime>(1, 1).Should().Be(data, "Value in A1 is incorrect.");
         }
 
-        [TestMethod]
+        [Fact]
         public void WriteToStreamAsync_WithArrayOfDateTime_WritesExcelDocumentToStream()
         {
             var data = new[] { DateTime.Today, DateTime.Today.AddDays(1) };
 
             var sheet = GetWorksheetFromStream(new XlsxMediaTypeFormatter(), data);
 
-            Assert.IsNotNull(sheet.Dimension, "Worksheet has no cells.");
-            Assert.AreEqual(2.0, sheet.Dimension.End.Row, "Worksheet should have one row.");
-            Assert.AreEqual(1.0, sheet.Dimension.End.Column, "Worksheet should have one column.");
-            Assert.AreEqual(data[0], sheet.GetValue<DateTime>(1, 1), "Value in A1 is incorrect.");
-            Assert.AreEqual(data[1], sheet.GetValue<DateTime>(2, 1), "Value in A2 is incorrect.");
+            sheet.Dimension.Should().NotBeNull("Worksheet has no cells.");
+            sheet.Dimension.End.Row.Should().Be(2, "Worksheet should have two rows.");
+            sheet.Dimension.End.Column.Should().Be(1, "Worksheet should have one column.");
+            sheet.GetValue<DateTime>(1, 1).Should().Be(data[0], "Value in A1 is incorrect.");
+            sheet.GetValue<DateTime>(2, 1).Should().Be(data[1], "Value in A2 is incorrect.");
         }
 
-        [TestMethod]
+        [Fact]
         public void XlsxMediaTypeFormatter_WithDefaultHeaderHeight_DefaultsToSameHeightForAllCells()
         {
             var data = new[] { new SimpleTestItem { Value1 = "A1", Value2 = "B1" },
@@ -407,11 +409,11 @@ namespace WebApiContrib.Formatting.Xlsx.Tests
 
             var sheet = GetWorksheetFromStream(formatter, data);
 
-            Assert.AreNotEqual(sheet.Row(1).Height, 0d, "HeaderHeight should not be zero");
-            Assert.AreEqual(sheet.Row(1).Height, sheet.Row(2).Height, "HeaderHeight should be the same as other rows");
+            sheet.Row(1).Height.Should().NotBe(0d, "HeaderHeight should not be zero.");
+            sheet.Row(1).Height.Should().Be(sheet.Row(2).Height, "HeaderHeight should be the same as other rows.");
         }
 
-        [TestMethod]
+        [Fact]
         public void WriteToStreamAsync_WithCellAndHeaderFormats_WritesFormattedExcelDocumentToStream()
         {
             var data = new[] { new SimpleTestItem { Value1 = "2,1", Value2 = "2,2" },
@@ -432,36 +434,36 @@ namespace WebApiContrib.Formatting.Xlsx.Tests
 
             var sheet = GetWorksheetFromStream(formatter, data);
 
-            Assert.IsTrue(sheet.Cells[1, 1].Style.Font.Bold, "Header in A1 should be bold.");
-            Assert.IsTrue(sheet.Cells[1, 2].Style.Font.Bold, "Header in B1 should be bold.");
-            Assert.IsTrue(sheet.Cells[1, 3].Style.Font.Bold, "Header in C1 should be bold.");
-            Assert.IsTrue(sheet.Cells[2, 1].Style.Font.Bold, "Value in A2 should be bold.");
-            Assert.IsTrue(sheet.Cells[2, 2].Style.Font.Bold, "Value in B2 should be bold.");
-            Assert.IsTrue(sheet.Cells[2, 3].Style.Font.Bold, "Value in C2 should be bold.");
-            Assert.IsTrue(sheet.Cells[3, 1].Style.Font.Bold, "Value in A3 should be bold.");
-            Assert.IsTrue(sheet.Cells[3, 2].Style.Font.Bold, "Value in B3 should be bold.");
-            Assert.IsTrue(sheet.Cells[3, 3].Style.Font.Bold, "Value in C3 should be bold.");
-            Assert.AreEqual(18f, sheet.Cells[1, 1].Style.Font.Size, "Header in A1 should be in size 18 font.");
-            Assert.AreEqual(18f, sheet.Cells[1, 2].Style.Font.Size, "Header in B1 should be in size 18 font.");
-            Assert.AreEqual(18f, sheet.Cells[1, 3].Style.Font.Size, "Header in C1 should be in size 18 font.");
-            Assert.AreEqual(15f, sheet.Cells[2, 1].Style.Font.Size, "Value in A2 should be in size 15 font.");
-            Assert.AreEqual(15f, sheet.Cells[2, 2].Style.Font.Size, "Value in B2 should be in size 15 font.");
-            Assert.AreEqual(15f, sheet.Cells[2, 3].Style.Font.Size, "Value in C2 should be in size 15 font.");
-            Assert.AreEqual(15f, sheet.Cells[3, 1].Style.Font.Size, "Value in A3 should be in size 15 font.");
-            Assert.AreEqual(15f, sheet.Cells[3, 2].Style.Font.Size, "Value in B3 should be in size 15 font.");
-            Assert.AreEqual(15f, sheet.Cells[3, 3].Style.Font.Size, "Value in C3 should be in size 15 font.");
-            Assert.AreEqual(ExcelBorderStyle.Thick, sheet.Cells[1, 1].Style.Border.Bottom.Style, "Header in A1 should have a thick border.");
-            Assert.AreEqual(ExcelBorderStyle.Thick, sheet.Cells[1, 2].Style.Border.Bottom.Style, "Header in B1 should have a thick border.");
-            Assert.AreEqual(ExcelBorderStyle.Thick, sheet.Cells[1, 3].Style.Border.Bottom.Style, "Header in C1 should have a thick border.");
-            Assert.AreNotEqual(ExcelBorderStyle.Thick, sheet.Cells[2, 1].Style.Border.Bottom.Style, "Value in A2 should NOT have a thick border.");
-            Assert.AreNotEqual(ExcelBorderStyle.Thick, sheet.Cells[2, 2].Style.Border.Bottom.Style, "Value in B2 should NOT have a thick border.");
-            Assert.AreNotEqual(ExcelBorderStyle.Thick, sheet.Cells[2, 3].Style.Border.Bottom.Style, "Value in C2 should NOT have a thick border.");
-            Assert.AreNotEqual(ExcelBorderStyle.Thick, sheet.Cells[3, 1].Style.Border.Bottom.Style, "Value in A3 should NOT have a thick border.");
-            Assert.AreNotEqual(ExcelBorderStyle.Thick, sheet.Cells[3, 2].Style.Border.Bottom.Style, "Value in B3 should NOT have a thick border.");
-            Assert.AreNotEqual(ExcelBorderStyle.Thick, sheet.Cells[3, 3].Style.Border.Bottom.Style, "Value in C3 should NOT have a thick border.");
+            sheet.Cells[1, 1].Style.Font.Bold.Should().BeTrue("Header in A1 should be bold.");
+            sheet.Cells[1, 2].Style.Font.Bold.Should().BeTrue("Header in B1 should be bold.");
+            sheet.Cells[1, 3].Style.Font.Bold.Should().BeTrue("Header in C1 should be bold.");
+            sheet.Cells[2, 1].Style.Font.Bold.Should().BeTrue("Value in A2 should be bold.");
+            sheet.Cells[2, 2].Style.Font.Bold.Should().BeTrue("Value in B2 should be bold.");
+            sheet.Cells[2, 3].Style.Font.Bold.Should().BeTrue("Value in C2 should be bold.");
+            sheet.Cells[3, 1].Style.Font.Bold.Should().BeTrue("Value in A3 should be bold.");
+            sheet.Cells[3, 2].Style.Font.Bold.Should().BeTrue("Value in B3 should be bold.");
+            sheet.Cells[3, 3].Style.Font.Bold.Should().BeTrue("Value in C3 should be bold.");
+            sheet.Cells[1, 1].Style.Font.Size.Should().Be(18f, "Header in A1 should be in size 18 font.");
+            sheet.Cells[1, 2].Style.Font.Size.Should().Be(18f, "Header in B1 should be in size 18 font.");
+            sheet.Cells[1, 3].Style.Font.Size.Should().Be(18f, "Header in C1 should be in size 18 font.");
+            sheet.Cells[2, 1].Style.Font.Size.Should().Be(15f, "Value in A2 should be in size 15 font.");
+            sheet.Cells[2, 2].Style.Font.Size.Should().Be(15f, "Value in B2 should be in size 15 font.");
+            sheet.Cells[2, 3].Style.Font.Size.Should().Be(15f, "Value in C2 should be in size 15 font.");
+            sheet.Cells[3, 1].Style.Font.Size.Should().Be(15f, "Value in A3 should be in size 15 font.");
+            sheet.Cells[3, 2].Style.Font.Size.Should().Be(15f, "Value in B3 should be in size 15 font.");
+            sheet.Cells[3, 3].Style.Font.Size.Should().Be(15f, "Value in C3 should be in size 15 font.");
+            sheet.Cells[1, 1].Style.Border.Bottom.Style.Should().Be(ExcelBorderStyle.Thick, "Header in A1 should have a thick border.");
+            sheet.Cells[1, 2].Style.Border.Bottom.Style.Should().Be(ExcelBorderStyle.Thick, "Header in B1 should have a thick border.");
+            sheet.Cells[1, 3].Style.Border.Bottom.Style.Should().Be(ExcelBorderStyle.Thick, "Header in C1 should have a thick border.");
+            sheet.Cells[2, 1].Style.Border.Bottom.Style.Should().NotBe(ExcelBorderStyle.Thick, "Value in A2 should NOT have a thick border.");
+            sheet.Cells[2, 2].Style.Border.Bottom.Style.Should().NotBe(ExcelBorderStyle.Thick, "Value in B2 should NOT have a thick border.");
+            sheet.Cells[2, 3].Style.Border.Bottom.Style.Should().NotBe(ExcelBorderStyle.Thick, "Value in C2 should NOT have a thick border.");
+            sheet.Cells[3, 1].Style.Border.Bottom.Style.Should().NotBe(ExcelBorderStyle.Thick, "Value in A3 should NOT have a thick border.");
+            sheet.Cells[3, 2].Style.Border.Bottom.Style.Should().NotBe(ExcelBorderStyle.Thick, "Value in B3 should NOT have a thick border.");
+            sheet.Cells[3, 3].Style.Border.Bottom.Style.Should().NotBe(ExcelBorderStyle.Thick, "Value in C3 should NOT have a thick border.");
         }
 
-        [TestMethod]
+        [Fact]
         public void WriteToStreamAsync_WithHeaderRowHeight_WritesFormattedExcelDocumentToStream()
         {
             var data = new[] { new SimpleTestItem { Value1 = "2,1", Value2 = "2,2" },
@@ -471,9 +473,9 @@ namespace WebApiContrib.Formatting.Xlsx.Tests
 
             var sheet = GetWorksheetFromStream(formatter, data);
 
-            Assert.AreEqual(30f, sheet.Row(1).Height, "Row 1 should have height 30.");
+            sheet.Row(1).Height.Should().Be(30f, "Row 1 should have height 30.");
         }
-        
+
         #region Fakes and test-related classes
         public class FakeContent : HttpContent
         {
@@ -500,7 +502,8 @@ namespace WebApiContrib.Formatting.Xlsx.Tests
         #endregion
 
         #region Utilities
-        public ExcelWorksheet GetWorksheetFromStream<TItem>(XlsxMediaTypeFormatter formatter, TItem data)
+
+        private ExcelWorksheet GetWorksheetFromStream<TItem>(XlsxMediaTypeFormatter formatter, TItem data)
         {
             var ms = new MemoryStream();
 

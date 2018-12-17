@@ -1,46 +1,46 @@
-﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using FluentAssertions;
 using WebApiContrib.Formatting.Xlsx.Tests.TestData;
+using Xunit;
 
 namespace WebApiContrib.Formatting.Xlsx.Tests
 {
-    [TestClass]
     public class FormatterUtilsTests
     {
-        [TestMethod]
+        [Fact]
         public void GetAttribute_ExcelColumnAttributeOfComplexTestItemValue2_ExcelColumnAttribute()
         {
             var value2 = typeof(ComplexTestItem).GetMember("Value2")[0];
             var excelAttribute = FormatterUtils.GetAttribute<ExcelColumnAttribute>(value2);
 
-            Assert.IsNotNull(excelAttribute);
-            Assert.AreEqual(2, excelAttribute.Order);
+            excelAttribute.Should().NotBeNull();
+            excelAttribute.Order.Should().Be(2);
         }
 
-        [TestMethod]
+        [Fact]
         public void GetAttribute_ExcelDocumentAttributeOfComplexTestItem_ExcelDocumentAttribute()
         {
             var complexTestItem = typeof(ComplexTestItem);
             var excelAttribute = FormatterUtils.GetAttribute<ExcelDocumentAttribute>(complexTestItem);
 
-            Assert.IsNotNull(excelAttribute);
-            Assert.AreEqual("Complex test item", excelAttribute.FileName);
+            excelAttribute.Should().NotBeNull();
+            excelAttribute.FileName.Should().Be("Complex test item");
         }
 
-        [TestMethod]
+        [Fact]
         public void MemberOrder_SimpleTestItem_ReturnsMemberOrder()
         {
             var testItemType = typeof(SimpleTestItem);
             var value1 = testItemType.GetMember("Value1")[0];
             var value2 = testItemType.GetMember("Value2")[0];
 
-            Assert.AreEqual(-1, FormatterUtils.MemberOrder(value1), "Value1 should have order -1.");
-            Assert.AreEqual(-1, FormatterUtils.MemberOrder(value2), "Value2 should have order -1.");
+            FormatterUtils.MemberOrder(value1).Should().Be(-1, "Value1 should have order -1.");
+            FormatterUtils.MemberOrder(value2).Should().Be(-1, "Value2 should have order -1.");
         }
 
-        [TestMethod]
+        [Fact]
         public void MemberOrder_ComplexTestItem_ReturnsMemberOrder()
         {
             var testItemType = typeof(ComplexTestItem);
@@ -51,101 +51,101 @@ namespace WebApiContrib.Formatting.Xlsx.Tests
             var value5 = testItemType.GetMember("Value5")[0];
             var value6 = testItemType.GetMember("Value6")[0];
 
-            Assert.AreEqual(-1, FormatterUtils.MemberOrder(value1), "Value1 should have order -1.");
-            Assert.AreEqual( 2, FormatterUtils.MemberOrder(value2), "Value2 should have order 2." );
-            Assert.AreEqual( 1, FormatterUtils.MemberOrder(value3), "Value3 should have order 1." );
-            Assert.AreEqual(-2, FormatterUtils.MemberOrder(value4), "Value4 should have order -2.");
-            Assert.AreEqual(-1, FormatterUtils.MemberOrder(value5), "Value5 should have order -1.");
-            Assert.AreEqual(-1, FormatterUtils.MemberOrder(value6), "Value6 should have order -1.");
+            FormatterUtils.MemberOrder(value1).Should().Be(-1, "Value1 should have order -1.");
+            FormatterUtils.MemberOrder(value2).Should().Be(2, "Value2 should have order 2.");
+            FormatterUtils.MemberOrder(value3).Should().Be(1, "Value3 should have order 1.");
+            FormatterUtils.MemberOrder(value4).Should().Be(-2, "Value4 should have order -2.");
+            FormatterUtils.MemberOrder(value5).Should().Be(-1, "Value5 should have order -1.");
+            FormatterUtils.MemberOrder(value6).Should().Be(-1, "Value6 should have order -1.");
         }
 
-        [TestMethod]
+        [Fact]
         public void GetMemberNames_SimpleTestItem_ReturnsMemberNamesInOrder()
         {
             var memberNames = FormatterUtils.GetMemberNames(typeof(SimpleTestItem));
 
-            Assert.IsNotNull(memberNames);
-            Assert.AreEqual(2, memberNames.Count);
-            Assert.AreEqual("Value1", memberNames[0]);
-            Assert.AreEqual("Value2", memberNames[1]);
+            memberNames.Should().NotBeNull();
+            memberNames.Count.Should().Be(2);
+            memberNames[0].Should().Be("Value1");
+            memberNames[1].Should().Be("Value2");
         }
 
-        [TestMethod]
+        [Fact]
         public void GetMemberNames_ComplexTestItem_ReturnsMemberNamesInOrder()
         {
             var memberNames = FormatterUtils.GetMemberNames(typeof(ComplexTestItem));
 
-            Assert.IsNotNull(memberNames);
-            Assert.AreEqual(5, memberNames.Count);
-            Assert.AreEqual("Value4", memberNames[0]);
-            Assert.AreEqual("Value1", memberNames[1]);
-            Assert.AreEqual("Value5", memberNames[2]);
-            Assert.AreEqual("Value3", memberNames[3]);
-            Assert.AreEqual("Value2", memberNames[4]);
+            memberNames.Should().NotBeNull();
+            memberNames.Count.Should().Be(5);
+            memberNames[0].Should().Be("Value4");
+            memberNames[1].Should().Be("Value1");
+            memberNames[2].Should().Be("Value5");
+            memberNames[3].Should().Be("Value3");
+            memberNames[4].Should().Be("Value2");
         }
 
-        [TestMethod]
+        [Fact]
         public void GetMemberNames_AnonymousType_ReturnsMemberNamesInOrderDefined()
         {
             var anonymous = new { prop1 = "value1", prop2 = "value2" };
             var memberNames = FormatterUtils.GetMemberNames(anonymous.GetType());
 
-            Assert.IsNotNull(memberNames);
-            Assert.AreEqual(2, memberNames.Count);
-            Assert.AreEqual("prop1", memberNames[0]);
-            Assert.AreEqual("prop2", memberNames[1]);
+            memberNames.Should().NotBeNull();
+            memberNames.Count.Should().Be(2);
+            memberNames[0].Should().Be("prop1");
+            memberNames[1].Should().Be("prop2");
         }
 
-        [TestMethod]
+        [Fact]
         public void GetMemberInfo_SimpleTestItem_ReturnsMemberInfoList()
         {
             var memberInfo = FormatterUtils.GetMemberInfo(typeof(SimpleTestItem));
 
-            Assert.IsNotNull(memberInfo);
-            Assert.AreEqual(2, memberInfo.Count);
+            memberInfo.Should().NotBeNull();
+            memberInfo.Count.Should().Be(2);
         }
 
-        [TestMethod]
+        [Fact]
         public void GetMemberInfo_AnonymousType_ReturnsMemberInfoList()
         {
             var anonymous = new { prop1 = "value1", prop2 = "value2" };
             var memberInfo = FormatterUtils.GetMemberInfo(anonymous.GetType());
 
-            Assert.IsNotNull(memberInfo);
-            Assert.AreEqual(2, memberInfo.Count);
+            memberInfo.Should().NotBeNull();
+            memberInfo.Count.Should().Be(2);
         }
 
-        [TestMethod]
+        [Fact]
         public void GetEnumerableItemType_ListOfSimpleTestItem_ReturnsTestItemType()
         {
             var testItemList = typeof(List<SimpleTestItem>);
             var itemType = FormatterUtils.GetEnumerableItemType(testItemList);
 
-            Assert.IsNotNull(itemType);
-            Assert.AreEqual(typeof(SimpleTestItem), itemType);
+            itemType.Should().NotBeNull();
+            itemType.Should().Be(typeof(SimpleTestItem));
         }
 
-        [TestMethod]
+        [Fact]
         public void GetEnumerableItemType_IEnumerableOfSimpleTestItem_ReturnsTestItemType()
         {
             var testItemList = typeof(IEnumerable<SimpleTestItem>);
             var itemType = FormatterUtils.GetEnumerableItemType(testItemList);
 
-            Assert.IsNotNull(itemType);
-            Assert.AreEqual(typeof(SimpleTestItem), itemType);
+            itemType.Should().NotBeNull();
+            itemType.Should().Be(typeof(SimpleTestItem));
         }
 
-        [TestMethod]
+        [Fact]
         public void GetEnumerableItemType_ArrayOfSimpleTestItem_ReturnsTestItemType()
         {
             var testItemArray = typeof(SimpleTestItem[]);
             var itemType = FormatterUtils.GetEnumerableItemType(testItemArray);
 
-            Assert.IsNotNull(itemType);
-            Assert.AreEqual(typeof(SimpleTestItem), itemType);
+            itemType.Should().NotBeNull();
+            itemType.Should().Be(typeof(SimpleTestItem));
         }
 
-        [TestMethod]
+        [Fact]
         public void GetEnumerableItemType_ArrayOfAnonymousObject_ReturnsTestItemType()
         {
             var anonymous = new { prop1 = "value1", prop2 = "value2" };
@@ -153,11 +153,11 @@ namespace WebApiContrib.Formatting.Xlsx.Tests
 
             var itemType = FormatterUtils.GetEnumerableItemType(anonymousArray.GetType());
 
-            Assert.IsNotNull(itemType);
-            Assert.AreEqual(anonymous.GetType(), itemType);
+            itemType.Should().NotBeNull();
+            itemType.Should().Be(anonymous.GetType());
         }
 
-        [TestMethod]
+        [Fact]
         public void GetEnumerableItemType_ListOfAnonymousObject_ReturnsTestItemType()
         {
             var anonymous = new { prop1 = "value1", prop2 = "value2" };
@@ -165,14 +165,15 @@ namespace WebApiContrib.Formatting.Xlsx.Tests
 
             var itemType = FormatterUtils.GetEnumerableItemType(anonymousList.GetType());
 
-            Assert.IsNotNull(itemType);
-            Assert.AreEqual(anonymous.GetType(), itemType);
+            itemType.Should().NotBeNull();
+            itemType.Should().Be(anonymous.GetType());
         }
 
-        [TestMethod]
+        [Fact]
         public void GetFieldOrPropertyValue_ComplexTestItem_ReturnsPropertyValues()
         {
-            var obj = new ComplexTestItem() {
+            var obj = new ComplexTestItem
+            {
                 Value1 = "Value 1",
                 Value2 = DateTime.Today,
                 Value3 = true,
@@ -181,18 +182,19 @@ namespace WebApiContrib.Formatting.Xlsx.Tests
                 Value6 = "Value 6"
             };
 
-            Assert.AreEqual(obj.Value1, FormatterUtils.GetFieldOrPropertyValue(obj, "Value1"));
-            Assert.AreEqual(obj.Value2, FormatterUtils.GetFieldOrPropertyValue(obj, "Value2"));
-            Assert.AreEqual(obj.Value3, FormatterUtils.GetFieldOrPropertyValue(obj, "Value3"));
-            Assert.AreEqual(obj.Value4, FormatterUtils.GetFieldOrPropertyValue(obj, "Value4"));
-            Assert.AreEqual(obj.Value5, FormatterUtils.GetFieldOrPropertyValue(obj, "Value5"));
-            Assert.AreEqual(obj.Value6, FormatterUtils.GetFieldOrPropertyValue(obj, "Value6"));
+            FormatterUtils.GetFieldOrPropertyValue(obj, "Value1").Should().Be(obj.Value1);
+            FormatterUtils.GetFieldOrPropertyValue(obj, "Value2").Should().Be(obj.Value2);
+            FormatterUtils.GetFieldOrPropertyValue(obj, "Value3").Should().Be(obj.Value3);
+            FormatterUtils.GetFieldOrPropertyValue(obj, "Value4").Should().Be(obj.Value4);
+            FormatterUtils.GetFieldOrPropertyValue(obj, "Value5").Should().Be(obj.Value5);
+            FormatterUtils.GetFieldOrPropertyValue(obj, "Value6").Should().Be(obj.Value6);
         }
 
-        [TestMethod]
+        [Fact]
         public void GetFieldOrPropertyValueT_ComplexTestItem_ReturnsPropertyValues()
         {
-            var obj = new ComplexTestItem() {
+            var obj = new ComplexTestItem
+            {
                 Value1 = "Value 1",
                 Value2 = DateTime.Today,
                 Value3 = true,
@@ -201,68 +203,68 @@ namespace WebApiContrib.Formatting.Xlsx.Tests
                 Value6 = "Value 6"
             };
 
-            Assert.AreEqual(obj.Value1, FormatterUtils.GetFieldOrPropertyValue<string>(obj, "Value1"));
-            Assert.AreEqual(obj.Value2, FormatterUtils.GetFieldOrPropertyValue<DateTime>(obj, "Value2"));
-            Assert.AreEqual(obj.Value3, FormatterUtils.GetFieldOrPropertyValue<bool>(obj, "Value3"));
-            Assert.AreEqual(obj.Value4, FormatterUtils.GetFieldOrPropertyValue<double>(obj, "Value4"));
-            Assert.AreEqual(obj.Value5, FormatterUtils.GetFieldOrPropertyValue<TestEnum>(obj, "Value5"));
-            Assert.AreEqual(obj.Value6, FormatterUtils.GetFieldOrPropertyValue<string>(obj, "Value6"));
+            FormatterUtils.GetFieldOrPropertyValue<string>(obj, "Value1").Should().Be(obj.Value1);
+            FormatterUtils.GetFieldOrPropertyValue<DateTime>(obj, "Value2").Should().Be(obj.Value2);
+            FormatterUtils.GetFieldOrPropertyValue<bool>(obj, "Value3").Should().Be(obj.Value3);
+            FormatterUtils.GetFieldOrPropertyValue<double>(obj, "Value4").Should().Be(obj.Value4);
+            FormatterUtils.GetFieldOrPropertyValue<TestEnum>(obj, "Value5").Should().Be(obj.Value5);
+            FormatterUtils.GetFieldOrPropertyValue<string>(obj, "Value6").Should().Be(obj.Value6);
         }
 
-        [TestMethod]
+        [Fact]
         public void GetFieldOrPropertyValue_AnonymousObject_ReturnsPropertyValues()
         {
             var obj = new { prop1 = "test", prop2 = 2.0, prop3 = DateTime.Today };
 
-            Assert.AreEqual(obj.prop1, FormatterUtils.GetFieldOrPropertyValue(obj, "prop1"));
-            Assert.AreEqual(obj.prop2, FormatterUtils.GetFieldOrPropertyValue(obj, "prop2"));
-            Assert.AreEqual(obj.prop3, FormatterUtils.GetFieldOrPropertyValue(obj, "prop3"));
+            FormatterUtils.GetFieldOrPropertyValue(obj, "prop1").Should().Be(obj.prop1);
+            FormatterUtils.GetFieldOrPropertyValue(obj, "prop2").Should().Be(obj.prop2);
+            FormatterUtils.GetFieldOrPropertyValue(obj, "prop3").Should().Be(obj.prop3);
         }
 
-        [TestMethod]
+        [Fact]
         public void GetFieldOrPropertyValueT_AnonymousObject_ReturnsPropertyValues()
         {
             var obj = new { prop1 = "test", prop2 = 2.0, prop3 = DateTime.Today };
 
-            Assert.AreEqual(obj.prop1, FormatterUtils.GetFieldOrPropertyValue<string>(obj, "prop1"));
-            Assert.AreEqual(obj.prop2, FormatterUtils.GetFieldOrPropertyValue<double>(obj, "prop2"));
-            Assert.AreEqual(obj.prop3, FormatterUtils.GetFieldOrPropertyValue<DateTime>(obj, "prop3"));
+            FormatterUtils.GetFieldOrPropertyValue<string>(obj, "prop1").Should().Be(obj.prop1);
+            FormatterUtils.GetFieldOrPropertyValue<double>(obj, "prop2").Should().Be(obj.prop2);
+            FormatterUtils.GetFieldOrPropertyValue<DateTime>(obj, "prop3").Should().Be(obj.prop3);
         }
 
-        [TestMethod]
+        [Fact]
         public void IsSimpleType_SimpleTypes_ReturnsTrue()
         {
-            Assert.IsTrue(FormatterUtils.IsSimpleType(typeof(bool)));
-            Assert.IsTrue(FormatterUtils.IsSimpleType(typeof(byte)));
-            Assert.IsTrue(FormatterUtils.IsSimpleType(typeof(sbyte)));
-            Assert.IsTrue(FormatterUtils.IsSimpleType(typeof(char)));
-            Assert.IsTrue(FormatterUtils.IsSimpleType(typeof(DateTime)));
-            Assert.IsTrue(FormatterUtils.IsSimpleType(typeof(DateTimeOffset)));
-            Assert.IsTrue(FormatterUtils.IsSimpleType(typeof(decimal)));
-            Assert.IsTrue(FormatterUtils.IsSimpleType(typeof(double)));
-            Assert.IsTrue(FormatterUtils.IsSimpleType(typeof(float)));
-            Assert.IsTrue(FormatterUtils.IsSimpleType(typeof(Guid)));
-            Assert.IsTrue(FormatterUtils.IsSimpleType(typeof(int)));
-            Assert.IsTrue(FormatterUtils.IsSimpleType(typeof(uint)));
-            Assert.IsTrue(FormatterUtils.IsSimpleType(typeof(long)));
-            Assert.IsTrue(FormatterUtils.IsSimpleType(typeof(ulong)));
-            Assert.IsTrue(FormatterUtils.IsSimpleType(typeof(short)));
-            Assert.IsTrue(FormatterUtils.IsSimpleType(typeof(TimeSpan)));
-            Assert.IsTrue(FormatterUtils.IsSimpleType(typeof(ushort)));
-            Assert.IsTrue(FormatterUtils.IsSimpleType(typeof(string)));
-            Assert.IsTrue(FormatterUtils.IsSimpleType(typeof(TestEnum)));
+            FormatterUtils.IsSimpleType(typeof(bool)).Should().BeTrue();
+            FormatterUtils.IsSimpleType(typeof(byte)).Should().BeTrue();
+            FormatterUtils.IsSimpleType(typeof(sbyte)).Should().BeTrue();
+            FormatterUtils.IsSimpleType(typeof(char)).Should().BeTrue();
+            FormatterUtils.IsSimpleType(typeof(DateTime)).Should().BeTrue();
+            FormatterUtils.IsSimpleType(typeof(DateTimeOffset)).Should().BeTrue();
+            FormatterUtils.IsSimpleType(typeof(decimal)).Should().BeTrue();
+            FormatterUtils.IsSimpleType(typeof(double)).Should().BeTrue();
+            FormatterUtils.IsSimpleType(typeof(float)).Should().BeTrue();
+            FormatterUtils.IsSimpleType(typeof(Guid)).Should().BeTrue();
+            FormatterUtils.IsSimpleType(typeof(int)).Should().BeTrue();
+            FormatterUtils.IsSimpleType(typeof(uint)).Should().BeTrue();
+            FormatterUtils.IsSimpleType(typeof(long)).Should().BeTrue();
+            FormatterUtils.IsSimpleType(typeof(ulong)).Should().BeTrue();
+            FormatterUtils.IsSimpleType(typeof(short)).Should().BeTrue();
+            FormatterUtils.IsSimpleType(typeof(TimeSpan)).Should().BeTrue();
+            FormatterUtils.IsSimpleType(typeof(ushort)).Should().BeTrue();
+            FormatterUtils.IsSimpleType(typeof(string)).Should().BeTrue();
+            FormatterUtils.IsSimpleType(typeof(TestEnum)).Should().BeTrue();
         }
 
-        [TestMethod]
+        [Fact]
         public void IsSimpleType_ComplexTypes_ReturnsFalse()
         {
             var anonymous = new { prop = "val" };
 
-            Assert.IsFalse(FormatterUtils.IsSimpleType(anonymous.GetType()));
-            Assert.IsFalse(FormatterUtils.IsSimpleType(typeof(Array)));
-            Assert.IsFalse(FormatterUtils.IsSimpleType(typeof(IEnumerable<>)));
-            Assert.IsFalse(FormatterUtils.IsSimpleType(typeof(object)));
-            Assert.IsFalse(FormatterUtils.IsSimpleType(typeof(SimpleTestItem)));
+            FormatterUtils.IsSimpleType(anonymous.GetType()).Should().BeFalse();
+            FormatterUtils.IsSimpleType(typeof(Array)).Should().BeFalse();
+            FormatterUtils.IsSimpleType(typeof(IEnumerable<>)).Should().BeFalse();
+            FormatterUtils.IsSimpleType(typeof(object)).Should().BeFalse();
+            FormatterUtils.IsSimpleType(typeof(SimpleTestItem)).Should().BeFalse();
         }
     }
 }
