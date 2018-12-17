@@ -4,12 +4,9 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Net;
-using System.Net.Http;
 using System.Net.Http.Headers;
-using System.Security.Authentication.ExtendedProtection;
-using System.Threading.Tasks;
 using FluentAssertions;
+using WebApiContrib.Formatting.Xlsx.Tests.Fakes;
 using WebApiContrib.Formatting.Xlsx.Tests.TestData;
 using Xunit;
 
@@ -476,34 +473,7 @@ namespace WebApiContrib.Formatting.Xlsx.Tests
             sheet.Row(1).Height.Should().Be(30f, "Row 1 should have height 30.");
         }
 
-        #region Fakes and test-related classes
-        public class FakeContent : HttpContent
-        {
-            public FakeContent() : base() { }
-
-            protected override Task SerializeToStreamAsync(Stream stream, TransportContext context)
-            {
-                throw new NotImplementedException();
-            }
-
-            protected override bool TryComputeLength(out long length)
-            {
-                throw new NotImplementedException();
-            }
-        }
-
-        public class FakeTransport : TransportContext
-        {
-            public override ChannelBinding GetChannelBinding(ChannelBindingKind kind)
-            {
-                throw new NotImplementedException();
-            }
-        }
-        #endregion
-
-        #region Utilities
-
-        private ExcelWorksheet GetWorksheetFromStream<TItem>(XlsxMediaTypeFormatter formatter, TItem data)
+        private static ExcelWorksheet GetWorksheetFromStream<TItem>(XlsxMediaTypeFormatter formatter, TItem data)
         {
             var ms = new MemoryStream();
 
@@ -524,6 +494,5 @@ namespace WebApiContrib.Formatting.Xlsx.Tests
             return package.Workbook.Worksheets[1];
 
         }
-        #endregion
     }
 }
