@@ -48,7 +48,7 @@ namespace WebApiContrib.Formatting.Xlsx
 
         /// <summary>
         /// Override the serialized order of this property in the generated Excel document.
-        /// </summary>public int Order
+        /// </summary>
         public int Order
         {
             get { return _order ?? default(int); }

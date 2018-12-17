@@ -8,7 +8,7 @@ namespace WebApiContrib.Formatting.Xlsx
 {
     public static class FormatterUtils
     {
-        const BindingFlags PublicInstanceBindingFlags = BindingFlags.Instance | BindingFlags.Public;
+        private const BindingFlags PublicInstanceBindingFlags = BindingFlags.Instance | BindingFlags.Public;
 
         /// <summary>
         /// Get the `Attribute` object of the specified type associated with a member. 
@@ -28,7 +28,7 @@ namespace WebApiContrib.Formatting.Xlsx
         /// Get the `Attribute` object of the specified type associated with a class. 
         /// </summary>
         /// <typeparam name="TAttribute">Type of attribute to get.</typeparam>
-        /// <param name="memberInfo">The class to look for the attribute on.</param>
+        /// <param name="type">The class to look for the attribute on.</param>
         public static TAttribute GetAttribute<TAttribute>(Type type)
         {
             var attributes = from a in type.GetCustomAttributes(true)
@@ -43,10 +43,10 @@ namespace WebApiContrib.Formatting.Xlsx
         /// member. If not found, will default to the `DataMember.Order` value.
         /// </summary>
         /// <param name="member">The member for which to find the `ExcelAttribute.Order` value.</param>
-        public static Int32 MemberOrder(MemberInfo member)
+        public static int MemberOrder(MemberInfo member)
         {
             var excelProperty = GetAttribute<ExcelColumnAttribute>(member);
-            if (excelProperty != null && excelProperty._order.HasValue)
+            if (excelProperty?._order != null)
                 return excelProperty.Order;
 
             var dataMember = GetAttribute<DataMemberAttribute>(member);
@@ -110,7 +110,7 @@ namespace WebApiContrib.Formatting.Xlsx
         /// <summary>
         /// Get the item type of a type that implements `IEnumerable`.
         /// </summary>
-        /// <param name="value">A type that purportedly implements `IEnumerable`.</param>
+        /// <param name="type">A type that purportedly implements `IEnumerable`.</param>
         /// <returns></returns>
         public static Type GetEnumerableItemType(Type type)
         {
