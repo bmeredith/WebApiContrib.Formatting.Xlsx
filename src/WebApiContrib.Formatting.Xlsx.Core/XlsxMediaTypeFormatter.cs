@@ -193,7 +193,7 @@ namespace WebApiContrib.Formatting.Xlsx.Core
             // Create a worksheet
             var package = new ExcelPackage();
             package.Workbook.Worksheets.Add("Data");
-            var worksheet = package.Workbook.Worksheets[1];
+            var worksheet = package.Workbook.Worksheets[0];
 
             var rowCount = 0;
             var valueType = context.ObjectType;
