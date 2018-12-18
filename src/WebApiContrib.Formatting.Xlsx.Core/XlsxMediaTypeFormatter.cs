@@ -1,64 +1,25 @@
-﻿using OfficeOpenXml;
-using OfficeOpenXml.Style;
-using System;
+﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
-using System.Net.Http.Formatting;
-using System.Net.Http.Headers;
-using System.Security.Permissions;
+using System.Text;
 using System.Threading.Tasks;
-using System.Web.ModelBinding;
-using ContentDispositionHeaderValue = System.Net.Http.Headers.ContentDispositionHeaderValue;
-using MediaTypeHeaderValue = System.Net.Http.Headers.MediaTypeHeaderValue;
-using util = WebApiContrib.Formatting.Xlsx.FormatterUtils;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Http.Extensions;
+using Microsoft.AspNetCore.Mvc.Formatters;
+using Microsoft.AspNetCore.Mvc.ModelBinding;
+using Microsoft.Net.Http.Headers;
+using OfficeOpenXml;
+using OfficeOpenXml.Style;
+using util = WebApiContrib.Formatting.Xlsx.Core.FormatterUtils;
 
-namespace WebApiContrib.Formatting.Xlsx
-{
-    /// <summary>
+namespace WebApiContrib.Formatting.Xlsx.Core
+{    /// <summary>
     /// Class used to send an Excel file to the response.
     /// </summary>
-    public class XlsxMediaTypeFormatter : MediaTypeFormatter
+    public class XlsxMediaTypeFormatter : TextOutputFormatter
     {
-        public override void SetDefaultContentHeaders(Type type, HttpContentHeaders headers, MediaTypeHeaderValue mediaType)
-        {
-            // Get the raw request URI.
-            string rawUri = System.Web.HttpContext.Current.Request.RawUrl;
-
-            // Remove query string if present.
-            int queryStringIndex = rawUri.IndexOf('?');
-            if (queryStringIndex > -1)
-            {
-                rawUri = rawUri.Substring(0, queryStringIndex);
-            }
-
-            string fileName;
-
-            // Look for ExcelDocumentAttribute on class.
-            var itemType = util.GetEnumerableItemType(type);
-            var excelDocumentAttribute = util.GetAttribute<ExcelDocumentAttribute>(itemType ?? type);
-
-            if (excelDocumentAttribute != null && !string.IsNullOrEmpty(excelDocumentAttribute.FileName))
-            {
-                // If attribute exists with file name defined, use that.
-                fileName = excelDocumentAttribute.FileName;
-            }
-            else
-            {
-                // Otherwise, use either the URL file name component or just "data".
-                fileName = System.Web.VirtualPathUtility.GetFileName(rawUri) ?? "data";
-            }
-
-            // Add XLSX extension if not present.
-            if (!fileName.EndsWith("xlsx", StringComparison.CurrentCultureIgnoreCase)) fileName += ".xlsx";
-
-            // Set content disposition to use this file name.
-            headers.ContentDisposition = new ContentDispositionHeaderValue("inline")
-            { FileName = fileName };
-
-            base.SetDefaultContentHeaders(type, headers, mediaType);
-        }
-
         /// <summary>
         /// An action method that can be used to set the default cell style.
         /// </summary>
@@ -112,23 +73,137 @@ namespace WebApiContrib.Formatting.Xlsx
             HeaderStyle = headerStyle;
         }
 
-
-        [SecurityPermission(SecurityAction.Demand, SerializationFormatter = true)]
-        public override Task WriteToStreamAsync(Type type, object value, System.IO.Stream writeStream, System.Net.Http.HttpContent content, System.Net.TransportContext transportContext)
+        public override void WriteResponseHeaders(OutputFormatterWriteContext context)
         {
+            var rawUri = GetRequestUrl(context.HttpContext.Request);
+
+            string fileName;
+
+            // Look for ExcelDocumentAttribute on class.
+            var itemType = util.GetEnumerableItemType(context.ObjectType);
+            var excelDocumentAttribute = util.GetAttribute<ExcelDocumentAttribute>(itemType ?? context.ObjectType);
+
+            if (excelDocumentAttribute != null && !string.IsNullOrEmpty(excelDocumentAttribute.FileName))
+            {
+                // If attribute exists with file name defined, use that.
+                fileName = excelDocumentAttribute.FileName;
+            }
+            else
+            {
+                // Otherwise, use either the URL file name component or just "data".
+                fileName = GetFileNameFromUrl(rawUri) ?? "data";
+            }
+
+            // Add XLSX extension if not present.
+            if (!fileName.EndsWith("xlsx", StringComparison.CurrentCultureIgnoreCase))
+            {
+                fileName += ".xlsx";
+            }
+
+            var cds = new ContentDispositionHeaderValue("inline")
+            {
+                FileName = fileName
+            };
+
+            context.HttpContext.Response.Headers.Add(HeaderNames.ContentDisposition, cds.ToString());
+
+            base.WriteResponseHeaders(context);
+        }
+
+        private static string GetFileNameFromUrl(string url)
+        {
+            if (!Uri.TryCreate(url, UriKind.Absolute, out var uri))
+            {
+                return null;
+            }
+
+            return Path.GetFileName(uri.LocalPath);
+        }
+
+        private static string GetRequestUrl(HttpRequest request)
+        {
+            var rawUri = request.GetEncodedUrl();
+            rawUri = RemoveQueryString();
+            return rawUri;
+
+            string RemoveQueryString()
+            {
+                var queryStringIndex = rawUri.IndexOf('?');
+                if (queryStringIndex > -1)
+                {
+                    rawUri = rawUri.Substring(0, queryStringIndex);
+                }
+
+                return rawUri;
+            }
+        }
+
+        private static object GetFieldOrPropertyValue(object rowObject, string name)
+        {
+            var rowValue = util.GetFieldOrPropertyValue(rowObject, name);
+            if (IsExcelSupportedType(rowValue))
+            {
+                return rowValue;
+            }
+
+            return rowValue == null || DBNull.Value.Equals(rowValue)
+                ? string.Empty
+                : rowValue.ToString();
+        }
+
+        private static bool IsExcelSupportedType(object expression)
+        {
+            return expression is string ||
+                   expression is short ||
+                   expression is int ||
+                   expression is long ||
+                   expression is decimal ||
+                   expression is float ||
+                   expression is double ||
+                   expression is DateTime;
+        }
+
+        /// <summary>
+        /// Append a row to the <c>StringBuilder</c> containing the CSV data.
+        /// </summary>
+        /// <param name="row">The row to append to this instance.</param>
+        /// <param name="worksheet">The worksheet to append this row to.</param>
+        /// <param name="rowCount">The number of rows appended so far.</param>
+        private static void AppendRow(IEnumerable<object> row, ExcelWorksheet worksheet, ref int rowCount)
+        {
+            rowCount++;
+
+            var enumerable = row as IList<object> ?? row.ToList();
+            for (var i = 1; i <= enumerable.Count; i++)
+            {
+                // Unary-based indexes should not mix with zero-based. :(
+                worksheet.Cells[rowCount, i].Value = enumerable.ElementAt(i - 1);
+            }
+        }
+
+        protected override bool CanWriteType(Type type)
+        {
+            return true;
+        }
+
+        public override async Task WriteResponseBodyAsync(OutputFormatterWriteContext context, Encoding selectedEncoding)
+        {
+            var response = context.HttpContext.Response;
+
             // Create a worksheet
             var package = new ExcelPackage();
             package.Workbook.Worksheets.Add("Data");
             var worksheet = package.Workbook.Worksheets[1];
 
-            int rowCount = 0;
-            var valueType = value.GetType();
+            var rowCount = 0;
+            var valueType = context.ObjectType;
+            var value = new object();
 
             // Apply cell styles.
             CellStyle?.Invoke(worksheet.Cells.Style);
 
             // Get the item type.
-            var itemType = (util.IsSimpleType(valueType))
+            var itemType = util.IsSimpleType(valueType)
                 ? null
                 : util.GetEnumerableItemType(valueType);
 
@@ -136,7 +211,7 @@ namespace WebApiContrib.Formatting.Xlsx
             if (itemType == null)
             {
                 itemType = valueType;
-                value = new[] { value };
+                value = new[] { context.Object };
             }
 
             // Enumerations of primitive types are also handled separately, since they have
@@ -155,7 +230,9 @@ namespace WebApiContrib.Formatting.Xlsx
                 if (AutoFit) worksheet.Cells[worksheet.Dimension.Address].AutoFitColumns();
 
                 // Save and done.
-                return Task.Factory.StartNew(() => package.SaveAs(writeStream));
+                var bytes = package.GetAsByteArray();
+                await response.Body.WriteAsync(bytes, 0, bytes.Length);
+                await package.Stream.FlushAsync();
             }
 
             var data = value as IEnumerable<object>;
@@ -163,7 +240,8 @@ namespace WebApiContrib.Formatting.Xlsx
             // What remains is an enumeration of object types.
             var serialisableMembers = util.GetMemberNames(itemType);
 
-            var metadata = ModelMetadataProviders.Current.GetMetadataForType(null, itemType);
+            var metadataProvider = (IModelMetadataProvider)context.HttpContext.RequestServices.GetService(typeof(IModelMetadataProvider));
+            var metadata = metadataProvider.GetMetadataForType(itemType);
 
             var properties = (from p in itemType.GetProperties()
                               where p.CanRead & p.GetGetMethod().IsPublic & p.GetGetMethod().GetParameters().Length == 0
@@ -206,7 +284,9 @@ namespace WebApiContrib.Formatting.Xlsx
 
             if (fields.Count == 0)
             {
-                return Task.Factory.StartNew(() => package.SaveAs(writeStream));
+                var bytes = package.GetAsByteArray();
+                await response.Body.WriteAsync(bytes, 0, bytes.Length);
+                await package.Stream.FlushAsync();
             }
 
             // Add header row
@@ -277,68 +357,9 @@ namespace WebApiContrib.Formatting.Xlsx
                 worksheet.Row(1).CustomHeight = true;
             }
 
-            return Task.Factory.StartNew(() => package.SaveAs(writeStream));
-        }
-
-        /// <summary>
-        /// Get a property value from an object.
-        /// </summary>
-        /// <param name="rowObject">The object whose property we want.</param>
-        /// <param name="name">The name of the property we want.</param>
-        private static object GetFieldOrPropertyValue(object rowObject, string name)
-        {
-            var rowValue = util.GetFieldOrPropertyValue(rowObject, name);
-            if (IsExcelSupportedType(rowValue))
-            {
-                return rowValue;
-            }
-
-            return rowValue == null || DBNull.Value.Equals(rowValue)
-                ? string.Empty
-                : rowValue.ToString();
-        }
-
-        public static bool IsExcelSupportedType(object expression)
-        {
-            return expression is string ||
-                   expression is short ||
-                   expression is int ||
-                   expression is long ||
-                   expression is decimal ||
-                   expression is float ||
-                   expression is double ||
-                   expression is DateTime;
-        }
-
-        /// <summary>
-        /// Append a row to the <c>StringBuilder</c> containing the CSV data.
-        /// </summary>
-        /// <param name="row">The row to append to this instance.</param>
-        /// <param name="worksheet">The worksheet to append this row to.</param>
-        /// <param name="rowCount">The number of rows appended so far.</param>
-        private static void AppendRow(IEnumerable<object> row, ExcelWorksheet worksheet, ref int rowCount)
-        {
-            rowCount++;
-
-            var enumerable = row as IList<object> ?? row.ToList();
-            for (var i = 1; i <= enumerable.Count(); i++)
-            {
-                // Unary-based indexes should not mix with zero-based. :(
-                worksheet.Cells[rowCount, i].Value = enumerable.ElementAt(i - 1);
-            }
-        }
-
-        public override bool CanWriteType(Type type)
-        {
-            // Should be able to serialise any type.
-            return true;
-        }
-
-        public override bool CanReadType(Type type)
-        {
-            // Not yet possible; see issue page to track progress:
-            // https://github.com/jordangray/xlsx-for-web-api/issues/5
-            return false;
+            var packageBytes = package.GetAsByteArray();
+            await response.Body.WriteAsync(packageBytes, 0, packageBytes.Length);
+            await package.Stream.FlushAsync();
         }
     }
 }
