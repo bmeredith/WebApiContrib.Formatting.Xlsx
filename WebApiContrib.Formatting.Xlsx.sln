@@ -16,7 +16,9 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WebApiContrib.Formatting.Xl
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "WebApiContrib.Formatting.Xlsx.Core", "src\WebApiContrib.Formatting.Xlsx.Core\WebApiContrib.Formatting.Xlsx.Core.csproj", "{8D6AE42A-8BC7-41B6-ADDE-AC5B8022A5F0}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WebApiContrib.Formatting.Xlsx.Core.Tests", "test\WebApiContrib.Formatting.Xlsx.Core.Tests\WebApiContrib.Formatting.Xlsx.Core.Tests.csproj", "{9B69B13B-1332-4E86-9864-95E3F99ED3E3}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "WebApiContrib.Formatting.Xlsx.Core.Tests", "test\WebApiContrib.Formatting.Xlsx.Core.Tests\WebApiContrib.Formatting.Xlsx.Core.Tests.csproj", "{9B69B13B-1332-4E86-9864-95E3F99ED3E3}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WebApiContrib.Formatting.Xlsx.Core.Sample", "samples\WebApiContrib.Formatting.Xlsx.Core.Sample\WebApiContrib.Formatting.Xlsx.Core.Sample.csproj", "{43D7E1DA-55F3-41D1-A886-32C47BABCF71}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -44,6 +46,10 @@ Global
 		{9B69B13B-1332-4E86-9864-95E3F99ED3E3}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{9B69B13B-1332-4E86-9864-95E3F99ED3E3}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{9B69B13B-1332-4E86-9864-95E3F99ED3E3}.Release|Any CPU.Build.0 = Release|Any CPU
+		{43D7E1DA-55F3-41D1-A886-32C47BABCF71}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{43D7E1DA-55F3-41D1-A886-32C47BABCF71}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{43D7E1DA-55F3-41D1-A886-32C47BABCF71}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{43D7E1DA-55F3-41D1-A886-32C47BABCF71}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

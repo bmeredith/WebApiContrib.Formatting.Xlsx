@@ -61,6 +61,8 @@ namespace WebApiContrib.Formatting.Xlsx.Core
         /// <param name="headerStyle">An action method that modifies the cell style of the first (header) row in the worksheet.</param>
         public XlsxMediaTypeFormatter(bool autoFit = true, bool autoFilter = false, bool freezeHeader = false, double? headerHeight = null, Action<ExcelStyle> cellStyle = null, Action<ExcelStyle> headerStyle = null)
         {
+            SupportedEncodings.Add(Encoding.UTF8);
+
             SupportedMediaTypes.Clear();
             SupportedMediaTypes.Add(new MediaTypeHeaderValue("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"));
             SupportedMediaTypes.Add(new MediaTypeHeaderValue("application/vnd.ms-excel"));
@@ -197,7 +199,7 @@ namespace WebApiContrib.Formatting.Xlsx.Core
 
             var rowCount = 0;
             var valueType = context.ObjectType;
-            var value = new object();
+            var value = context.Object;
 
             // Apply cell styles.
             CellStyle?.Invoke(worksheet.Cells.Style);
@@ -233,6 +235,7 @@ namespace WebApiContrib.Formatting.Xlsx.Core
                 var bytes = package.GetAsByteArray();
                 await response.Body.WriteAsync(bytes, 0, bytes.Length);
                 await package.Stream.FlushAsync();
+                return;
             }
 
             var data = value as IEnumerable<object>;
@@ -287,6 +290,7 @@ namespace WebApiContrib.Formatting.Xlsx.Core
                 var bytes = package.GetAsByteArray();
                 await response.Body.WriteAsync(bytes, 0, bytes.Length);
                 await package.Stream.FlushAsync();
+                return;
             }
 
             // Add header row
