@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net.Http.Headers;
@@ -438,21 +437,26 @@ namespace WebApiContrib.Formatting.Xlsx.Core.Tests
 
         private static ExcelWorksheet GetWorksheetFromStream<TItem>(XlsxMediaTypeFormatter formatter, TItem data)
         {
-
             var content = new FakeContent();
             content.Headers.ContentType = new MediaTypeHeaderValue("application/atom+xml");
 
-            var context = new OutputFormatterWriteContext(new DefaultHttpContext(), new TestHttpResponseStreamWriterFactory().CreateWriter, typeof(TItem), data);
+            var httpContext = new DefaultHttpContext();
+            httpContext.Response.Body = new MemoryStream();
+            httpContext.RequestServices = new FakeServiceProvider();
+            var context = new OutputFormatterWriteContext(httpContext, new TestHttpResponseStreamWriterFactory().CreateWriter, typeof(TItem), data);
             formatter.WriteResponseBodyAsync(context, Encoding.UTF8).GetAwaiter().GetResult();
 
-            using (var ms = new MemoryStream())
-            {
-                ms.Seek(0, SeekOrigin.Begin);
-                using (var package = new ExcelPackage(ms))
-                {
-                    return package.Workbook.Worksheets[1];
-                }
-            }
+            context.HttpContext.Response.Body.Seek(0, SeekOrigin.Begin);
+            var package = new ExcelPackage(context.HttpContext.Response.Body);
+            return package.Workbook.Worksheets[0];
+        }
+    }
+
+    public class FakeServiceProvider : IServiceProvider
+    {
+        public object GetService(Type serviceType)
+        {
+            return new EmptyModelMetadataProvider();
         }
     }
 

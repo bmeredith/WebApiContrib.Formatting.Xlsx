@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -250,7 +251,6 @@ namespace WebApiContrib.Formatting.Xlsx.Core
                               where p.CanRead & p.GetGetMethod().IsPublic & p.GetGetMethod().GetParameters().Length == 0
                               select p).ToList();
 
-
             var fields = new List<string>();
             var fieldInfo = new ExcelFieldInfoCollection();
 
@@ -281,7 +281,10 @@ namespace WebApiContrib.Formatting.Xlsx.Core
                         field.Header = modelProp.DisplayName ?? propertyName;
 
                     if (attribute != null && attribute.UseDisplayFormatString)
+                    {
+                        Console.WriteLine(modelProp.DisplayFormatString);
                         field.FormatString = modelProp.DisplayFormatString;
+                    }
                 }
             }
 
