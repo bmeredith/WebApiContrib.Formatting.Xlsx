@@ -3,12 +3,13 @@ using OfficeOpenXml.Style;
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.ComponentModel;
+using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Net.Http.Formatting;
 using System.Net.Http.Headers;
 using System.Security.Permissions;
 using System.Threading.Tasks;
-using System.Web.ModelBinding;
 using ContentDispositionHeaderValue = System.Net.Http.Headers.ContentDispositionHeaderValue;
 using MediaTypeHeaderValue = System.Net.Http.Headers.MediaTypeHeaderValue;
 using util = WebApiContrib.Formatting.Xlsx.FormatterUtils;
@@ -22,22 +23,11 @@ namespace WebApiContrib.Formatting.Xlsx
     {
         public override void SetDefaultContentHeaders(Type type, HttpContentHeaders headers, MediaTypeHeaderValue mediaType)
         {
-            // Get the raw request URI.
-            string rawUri = System.Web.HttpContext.Current.Request.RawUrl;
-
-            // Remove query string if present.
-            int queryStringIndex = rawUri.IndexOf('?');
-            if (queryStringIndex > -1)
-            {
-                rawUri = rawUri.Substring(0, queryStringIndex);
-            }
-
             string fileName;
 
             // Look for ExcelDocumentAttribute on class.
             var itemType = util.GetEnumerableItemType(type);
             var excelDocumentAttribute = util.GetAttribute<ExcelDocumentAttribute>(itemType ?? type);
-
             if (excelDocumentAttribute != null && !string.IsNullOrEmpty(excelDocumentAttribute.FileName))
             {
                 // If attribute exists with file name defined, use that.
@@ -45,16 +35,21 @@ namespace WebApiContrib.Formatting.Xlsx
             }
             else
             {
-                // Otherwise, use either the URL file name component or just "data".
-                fileName = System.Web.VirtualPathUtility.GetFileName(rawUri) ?? "data";
+                // Otherwise, use  "data".
+                fileName = "data";
             }
 
             // Add XLSX extension if not present.
-            if (!fileName.EndsWith("xlsx", StringComparison.CurrentCultureIgnoreCase)) fileName += ".xlsx";
+            if (!fileName.EndsWith("xlsx", StringComparison.CurrentCultureIgnoreCase))
+            {
+                fileName += ".xlsx";
+            }
 
             // Set content disposition to use this file name.
             headers.ContentDisposition = new ContentDispositionHeaderValue("inline")
-            { FileName = fileName };
+            {
+                FileName = fileName
+            };
 
             base.SetDefaultContentHeaders(type, headers, mediaType);
         }
@@ -158,17 +153,12 @@ namespace WebApiContrib.Formatting.Xlsx
                 return Task.Factory.StartNew(() => package.SaveAs(writeStream));
             }
 
-            var data = value as IEnumerable<object>;
-
             // What remains is an enumeration of object types.
             var serialisableMembers = util.GetMemberNames(itemType);
-
-            var metadata = ModelMetadataProviders.Current.GetMetadataForType(null, itemType);
 
             var properties = (from p in itemType.GetProperties()
                               where p.CanRead & p.GetGetMethod().IsPublic & p.GetGetMethod().GetParameters().Length == 0
                               select p).ToList();
-
 
             var fields = new List<string>();
             var fieldInfo = new ExcelFieldInfoCollection();
@@ -185,22 +175,48 @@ namespace WebApiContrib.Formatting.Xlsx
                 fieldInfo.Add(new ExcelFieldInfo(field, util.GetAttribute<ExcelColumnAttribute>(prop)));
             }
 
-            if (metadata.Properties != null)
+            var props = itemType.GetProperties().ToList();
+            foreach (var prop in props)
             {
-                foreach (var modelProp in metadata.Properties)
+                var attributes = prop.GetCustomAttributes(true);
+                foreach (var attribute in attributes)
                 {
-                    var propertyName = modelProp.PropertyName;
+                    var propertyName = prop.Name;
+                    if (!fieldInfo.Contains(propertyName))
+                    {
+                        continue;
+                    }
 
-                    if (!fieldInfo.Contains(propertyName)) continue;
+                    string displayFormatString = null;
+                    var displayFormatAttribute = (DisplayFormatAttribute)prop.GetCustomAttributes(typeof(DisplayFormatAttribute), true).FirstOrDefault();
+                    if (displayFormatAttribute != null)
+                    {
+                        displayFormatString = displayFormatAttribute.DataFormatString;
+                    }
+
+                    string displayName = null;
+                    var displayNameAttribute = (DisplayNameAttribute)prop.GetCustomAttributes(typeof(DisplayNameAttribute), true).FirstOrDefault();
+                    if (displayNameAttribute != null)
+                    {
+                        displayName = displayNameAttribute.DisplayName;
+                    }
 
                     var field = fieldInfo[propertyName];
-                    var attribute = field.ExcelAttribute;
+                    if (!field.IsExcelHeaderDefined)
+                    {
+                        field.Header = propertyName;
+                    }
 
                     if (!field.IsExcelHeaderDefined)
-                        field.Header = modelProp.DisplayName ?? propertyName;
+                    {
+                        field.Header = displayName ?? propertyName;
+                    }
 
-                    if (attribute != null && attribute.UseDisplayFormatString)
-                        field.FormatString = modelProp.DisplayFormatString;
+                    var excelAttribute = attribute as ExcelColumnAttribute;
+                    if (excelAttribute != null && excelAttribute.UseDisplayFormatString)
+                    {
+                        field.FormatString = displayFormatString;
+                    }
                 }
             }
 
@@ -212,6 +228,7 @@ namespace WebApiContrib.Formatting.Xlsx
             // Add header row
             AppendRow((from f in fieldInfo select f.Header).ToList(), worksheet, ref rowCount);
 
+            var data = value as IEnumerable<object>;
             // Output each row of data
             if (data?.FirstOrDefault() != null)
             {

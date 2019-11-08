@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -16,7 +15,8 @@ using OfficeOpenXml.Style;
 using util = WebApiContrib.Formatting.Xlsx.Core.FormatterUtils;
 
 namespace WebApiContrib.Formatting.Xlsx.Core
-{    /// <summary>
+{    
+    /// <summary>
     /// Class used to send an Excel file to the response.
     /// </summary>
     public class XlsxMediaTypeFormatter : TextOutputFormatter
