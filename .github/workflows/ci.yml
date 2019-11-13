@@ -22,9 +22,3 @@ jobs:
       run: dotnet build --configuration Release
     - run: dotnet --info
     - uses: actions/checkout@v1
-    - name: Run ./build.cmd
-      if: contains(matrix.runs-on, 'windows')
-      run: New-Item -ItemType file -Force "$env:USERPROFILE/.dotnet/$(dotnet --version).dotnetFirstUseSentinel" | Out-Null; ./build.cmd
-    - name: Run ./build.sh
-      if: contains(matrix.runs-on, 'macOS') || contains(matrix.runs-on, 'ubuntu')
-      run: touch "$HOME/.dotnet/$(dotnet --version).dotnetFirstUseSentinel" && ./build.sh
