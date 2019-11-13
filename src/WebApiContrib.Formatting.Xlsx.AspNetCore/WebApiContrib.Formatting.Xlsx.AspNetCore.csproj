@@ -1,7 +1,16 @@
-<Project Sdk="Microsoft.NET.Sdk">
-
+﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
+    <Company>WebApiContrib, Fastpath</Company>
+    <Product>WebApiContrib.Formatting.Xlsx</Product>
+    <Description>Generate formatted, customisable Excel documents straight from ASP.NET Core.</Description>
+    <Copyright>2014 Jordan Gray, WebApiContrib team</Copyright>
+    <Authors>Jordan Gray, Fastpath</Authors>
+    <PackageIconUrl>https://raw.githubusercontent.com/WebApiContrib/Inventory/master/assets/images/logo-200x200.png</PackageIconUrl>
+    <PackageProjectUrl>http://webapicontrib.github.io/WebApiContrib.Formatting.Xlsx/</PackageProjectUrl>
+    <PackageTags>webapi webapicontrib xlsx excel mediatypeformatter</PackageTags>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <RepositoryUrl>https://github.com/gofastpath/WebApiContrib.Formatting.Xlsx</RepositoryUrl>
   </PropertyGroup>
 
   <ItemGroup>
@@ -9,4 +18,10 @@
     <PackageReference Include="Microsoft.AspNetCore.Mvc.Core" Version="2.2.5" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Include="..\..\LICENSE.txt">
+      <Pack>True</Pack>
+      <PackagePath></PackagePath>
+    </None>
+  </ItemGroup>
 </Project>

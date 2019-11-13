@@ -1,17 +1,16 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
-    <AssemblyName>WebApiContrib.Formatting.Xlsx.NetStandard</AssemblyName>
-    <Company>WebApiContrib</Company>
+    <Company>WebApiContrib, Fastpath</Company>
     <Product>WebApiContrib.Formatting.Xlsx</Product>
     <Description>Generate formatted, customisable Excel documents straight from ASP.NET Web API.</Description>
     <Copyright>2014 Jordan Gray, WebApiContrib team</Copyright>
-    <Authors>Jordan Gray</Authors>
-    <PackageIconUrl>https://raw.githubusercontent.com/WebApiContrib/Inventory/master/assets/images/logo-200x200.png</PackageIconUrl>
-    <PackageLicenseUrl>https://raw.githubusercontent.com/WebApiContrib/WebApiContrib.Formatting.Xlsx/master/LICENSE.txt</PackageLicenseUrl>
+    <Authors>Jordan Gray, Fastpath</Authors>
     <PackageProjectUrl>http://webapicontrib.github.io/WebApiContrib.Formatting.Xlsx/</PackageProjectUrl>
-    <PackageReleaseNotes>First NuGet release. See package documentation for features and GitHub project page for known issues.</PackageReleaseNotes>
     <PackageTags>webapi webapicontrib xlsx excel mediatypeformatter</PackageTags>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <RepositoryUrl>https://github.com/gofastpath/WebApiContrib.Formatting.Xlsx</RepositoryUrl>
+    <PackageLicenseFile>LICENSE.txt</PackageLicenseFile>
   </PropertyGroup>
 
   <ItemGroup>
@@ -19,5 +18,12 @@
     <PackageReference Include="Microsoft.AspNet.WebApi.Client" Version="5.2.7" />
     <PackageReference Include="Newtonsoft.Json" Version="12.0.1" />
     <PackageReference Include="System.ComponentModel.Annotations" Version="4.6.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="..\..\LICENSE.txt">
+      <Pack>True</Pack>
+      <PackagePath></PackagePath>
+    </None>
   </ItemGroup>
 </Project>
