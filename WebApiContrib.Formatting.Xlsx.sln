@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 15
-VisualStudioVersion = 15.0.28307.168
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.29424.173
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "WebApiContrib.Formatting.Xlsx", "src\WebApiContrib.Formatting.Xlsx\WebApiContrib.Formatting.Xlsx.csproj", "{B6A319B2-82A4-41BA-A895-4FC02A0D53EF}"
 EndProject
@@ -14,11 +14,13 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WebApiContrib.Formatting.Xlsx.Sample", "samples\WebApiContrib.Formatting.Xlsx.Sample\WebApiContrib.Formatting.Xlsx.Sample.csproj", "{03A10509-AF42-4AEA-A3AA-D0DD4368B905}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "WebApiContrib.Formatting.Xlsx.Core", "src\WebApiContrib.Formatting.Xlsx.Core\WebApiContrib.Formatting.Xlsx.Core.csproj", "{8D6AE42A-8BC7-41B6-ADDE-AC5B8022A5F0}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "WebApiContrib.Formatting.Xlsx.AspNetCore", "src\WebApiContrib.Formatting.Xlsx.AspNetCore\WebApiContrib.Formatting.Xlsx.AspNetCore.csproj", "{8D6AE42A-8BC7-41B6-ADDE-AC5B8022A5F0}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "WebApiContrib.Formatting.Xlsx.Core.Tests", "test\WebApiContrib.Formatting.Xlsx.Core.Tests\WebApiContrib.Formatting.Xlsx.Core.Tests.csproj", "{9B69B13B-1332-4E86-9864-95E3F99ED3E3}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "WebApiContrib.Formatting.Xlsx.AspNetCore.Tests", "test\WebApiContrib.Formatting.Xlsx.AspNetCore.Tests\WebApiContrib.Formatting.Xlsx.AspNetCore.Tests.csproj", "{9B69B13B-1332-4E86-9864-95E3F99ED3E3}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WebApiContrib.Formatting.Xlsx.Core.Sample", "samples\WebApiContrib.Formatting.Xlsx.Core.Sample\WebApiContrib.Formatting.Xlsx.Core.Sample.csproj", "{43D7E1DA-55F3-41D1-A886-32C47BABCF71}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "WebApiContrib.Formatting.Xlsx.AspNetCore.Sample", "samples\WebApiContrib.Formatting.Xlsx.AspNetCore.Sample\WebApiContrib.Formatting.Xlsx.AspNetCore.Sample.csproj", "{43D7E1DA-55F3-41D1-A886-32C47BABCF71}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Samples", "Samples", "{08C91363-F8B5-42B6-B575-AB3C02603455}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -53,6 +55,10 @@ Global
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{03A10509-AF42-4AEA-A3AA-D0DD4368B905} = {08C91363-F8B5-42B6-B575-AB3C02603455}
+		{43D7E1DA-55F3-41D1-A886-32C47BABCF71} = {08C91363-F8B5-42B6-B575-AB3C02603455}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {C893C345-67B2-4E3C-BE62-D248F39D9C84}

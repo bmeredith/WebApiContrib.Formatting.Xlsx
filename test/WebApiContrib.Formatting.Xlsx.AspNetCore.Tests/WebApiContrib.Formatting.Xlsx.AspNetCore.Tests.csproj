@@ -14,7 +14,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\src\WebApiContrib.Formatting.Xlsx.Core\WebApiContrib.Formatting.Xlsx.Core.csproj" />
+    <ProjectReference Include="..\..\src\WebApiContrib.Formatting.Xlsx.AspNetCore\WebApiContrib.Formatting.Xlsx.AspNetCore.csproj" />
   </ItemGroup>
 
 </Project>
