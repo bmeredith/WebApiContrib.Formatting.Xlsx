@@ -6,6 +6,7 @@
     <Description>Generate formatted, customisable Excel documents straight from ASP.NET Core.</Description>
     <Copyright>2014 Jordan Gray, WebApiContrib team</Copyright>
     <Authors>Jordan Gray, Fastpath</Authors>
+    <PackageIcon>logo.png</PackageIcon>
     <PackageIconUrl>https://raw.githubusercontent.com/WebApiContrib/Inventory/master/assets/images/logo-200x200.png</PackageIconUrl>
     <PackageProjectUrl>http://webapicontrib.github.io/WebApiContrib.Formatting.Xlsx/</PackageProjectUrl>
     <PackageTags>webapi webapicontrib xlsx excel mediatypeformatter</PackageTags>
@@ -20,6 +21,13 @@
 
   <ItemGroup>
     <None Include="..\..\LICENSE.txt">
+      <Pack>True</Pack>
+      <PackagePath></PackagePath>
+    </None>
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="..\..\logo.png">
       <Pack>True</Pack>
       <PackagePath></PackagePath>
     </None>
