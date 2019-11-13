@@ -180,9 +180,9 @@
     <Content Include="Scripts\jquery-2.1.0.min.map" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\src\WebApiContrib.Formatting.Xlsx\WebApiContrib.Formatting.Xlsx.csproj">
+    <ProjectReference Include="..\..\src\WebApiContrib.Formatting.Xlsx.NetStandard\WebApiContrib.Formatting.Xlsx.NetStandard.csproj">
       <Project>{b6a319b2-82a4-41ba-a895-4fc02a0d53ef}</Project>
-      <Name>WebApiContrib.Formatting.Xlsx</Name>
+      <Name>WebApiContrib.Formatting.Xlsx.NetStandard</Name>
     </ProjectReference>
   </ItemGroup>
   <PropertyGroup>

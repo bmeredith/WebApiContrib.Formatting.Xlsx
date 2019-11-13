@@ -8,7 +8,7 @@
     <PackageReference Include="xunit" Version="2.4.1" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\src\WebApiContrib.Formatting.Xlsx\WebApiContrib.Formatting.Xlsx.csproj" />
+    <ProjectReference Include="..\..\src\WebApiContrib.Formatting.Xlsx.NetStandard\WebApiContrib.Formatting.Xlsx.NetStandard.csproj" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="System.ComponentModel.DataAnnotations" />
