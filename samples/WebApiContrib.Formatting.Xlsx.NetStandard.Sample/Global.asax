@@ -1,1 +1,1 @@
-﻿<%@ Application Codebehind="Global.asax.cs" Inherits="WebApiContrib.Formatting.Xlsx.Sample.WebApiApplication" Language="C#" %>
+﻿<%@ Application Codebehind="Global.asax.cs" Inherits="WebApiContrib.Formatting.Xlsx.NetStandard.Sample.WebApiApplication" Language="C#" %>

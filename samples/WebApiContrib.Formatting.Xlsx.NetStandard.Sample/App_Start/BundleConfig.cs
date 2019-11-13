@@ -1,6 +1,6 @@
 ﻿using System.Web.Optimization;
 
-namespace WebApiContrib.Formatting.Xlsx.Sample
+namespace WebApiContrib.Formatting.Xlsx.NetStandard.Sample
 {
     public class BundleConfig
     {

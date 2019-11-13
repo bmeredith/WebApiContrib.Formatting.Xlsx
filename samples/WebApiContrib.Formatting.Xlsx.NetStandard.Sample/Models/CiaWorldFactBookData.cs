@@ -1,6 +1,4 @@
-﻿using WebApiContrib.Formatting.Xlsx;
-
-namespace WebApiContrib.Formatting.Xlsx.Sample.Models
+﻿namespace WebApiContrib.Formatting.Xlsx.NetStandard.Sample.Models
 {
     [ExcelDocument("CIA World Factbook - Internet Penetration")]
     public class CiaWorldFactBookData

@@ -1,8 +1,8 @@
-﻿using OfficeOpenXml.Style;
-using System.Drawing;
+﻿using System.Drawing;
 using System.Web.Http;
+using OfficeOpenXml.Style;
 
-namespace WebApiContrib.Formatting.Xlsx.Sample
+namespace WebApiContrib.Formatting.Xlsx.NetStandard.Sample
 {
     public static class WebApiConfig
     {

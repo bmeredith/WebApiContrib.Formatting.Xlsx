@@ -5,9 +5,9 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Web.Http;
-using WebApiContrib.Formatting.Xlsx.Sample.Models;
+using WebApiContrib.Formatting.Xlsx.NetStandard.Sample.Models;
 
-namespace WebApiContrib.Formatting.Xlsx.Sample.Controllers
+namespace WebApiContrib.Formatting.Xlsx.NetStandard.Sample.Controllers
 {
     public class ValuesController : ApiController
     {

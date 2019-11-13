@@ -1,6 +1,6 @@
 ﻿using System.Web.Mvc;
 
-namespace WebApiContrib.Formatting.Xlsx.Sample.Controllers
+namespace WebApiContrib.Formatting.Xlsx.NetStandard.Sample.Controllers
 {
     public class HomeController : Controller
     {
